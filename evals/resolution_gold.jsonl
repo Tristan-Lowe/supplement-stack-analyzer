@@ -1,0 +1,21 @@
+{"raw": "mag glycinate 400mg", "expected": "Magnesium", "note": "abbreviation + salt form"}
+{"raw": "Magnesium Bisglycinate", "expected": "Magnesium", "note": "salt form"}
+{"raw": "magnesium l-threonate", "expected": "Magnesium", "note": "salt form with hyphen"}
+{"raw": "Vit D3 5000iu", "expected": "Vitamin D3", "note": "abbreviation"}
+{"raw": "cholecalciferol", "expected": "Vitamin D3", "note": "chemical synonym"}
+{"raw": "ashwaganda", "expected": "Ashwagandha", "note": "common misspelling"}
+{"raw": "Withania somnifera", "expected": "Ashwagandha", "note": "botanical name"}
+{"raw": "creatine mono 5g", "expected": "Creatine", "note": "abbreviation + salt"}
+{"raw": "zinc picolinate", "expected": "Zinc", "note": "salt form"}
+{"raw": "NAC 600", "expected": "N-Acetylcysteine", "note": "abbreviation"}
+{"raw": "omega-3", "expected": "Omega-3 Fatty Acids", "note": "hyphen normalization"}
+{"raw": "fish oil", "expected": "Omega-3 Fatty Acids", "note": "colloquial name"}
+{"raw": "St Johns Wort", "expected": "St. John's Wort", "note": "punctuation stripped"}
+{"raw": "levothyroxine", "expected": "Levothyroxine", "note": "exact drug name"}
+{"raw": "Synthroid", "expected": "Levothyroxine", "note": "brand to generic"}
+{"raw": "sertraline 50mg", "expected": "Sertraline", "note": "drug with dose"}
+{"raw": "Zoloft", "expected": "Sertraline", "note": "brand to generic"}
+{"raw": "Vitamin B", "expected": null, "note": "too vague - must not resolve"}
+{"raw": "multivitamin", "expected": null, "note": "too vague - must not resolve"}
+{"raw": "manganese", "expected": "Manganese", "note": "must not fuzzy-match magnesium"}
+{"raw": "flibbertigibbet extract", "expected": null, "note": "nonexistent compound"}
