@@ -1,6 +1,7 @@
+import pytest
 from sqlalchemy import select
 
-from ssa.extract.gates import merge_triple
+from ssa.extract.gates import UnverifiedSpanError, merge_triple
 from ssa.models import (
     ConflictRecord,
     Entity,
@@ -12,6 +13,11 @@ from ssa.models import (
     Severity,
 )
 from ssa.registry import get_or_create_entity
+
+SOURCE = (
+    "Calcium carbonate may bind levothyroxine. A minor effect was noted. "
+    "span one span two s s2"
+)
 
 
 def seed(session) -> tuple[Entity, Entity]:
@@ -29,8 +35,8 @@ def test_new_pair_is_created_pending_review(session):
         mechanism="Binding reduces absorption.",
         direction="decreases_absorption_of_b",
         severity=Severity.MODERATE, evidence_grade=EvidenceGrade.B,
-        span="Calcium may bind levothyroxine.",
-        source="openfda", source_url="https://example.test/1",
+        span="Calcium carbonate may bind levothyroxine.",
+        source="openfda", source_url="https://example.test/1", source_text=SOURCE,
     )
 
     row = session.scalars(select(Interaction)).one()
@@ -46,11 +52,10 @@ def test_minor_severity_is_published_without_review(session):
         session, entity_a_id=a.id, entity_b_id=b.id, mechanism="Trivial effect.",
         direction="unclear", severity=Severity.MINOR, evidence_grade=EvidenceGrade.D,
         span="A minor effect was noted.", source="pubmed",
-        source_url="https://example.test/2",
+        source_url="https://example.test/2", source_text=SOURCE,
     )
 
-    row = session.scalars(select(Interaction)).one()
-    assert row.status is InteractionStatus.PUBLISHED
+    assert session.scalars(select(Interaction)).one().status is InteractionStatus.PUBLISHED
 
 
 def test_agreeing_second_source_raises_confidence_and_adds_evidence(session):
@@ -60,6 +65,7 @@ def test_agreeing_second_source_raises_confidence_and_adds_evidence(session):
         mechanism="Binding reduces absorption.",
         direction="decreases_absorption_of_b",
         severity=Severity.MODERATE, evidence_grade=EvidenceGrade.B,
+        source_text=SOURCE,
     )
     merge_triple(session, **common, span="span one", source="openfda",
                  source_url="https://example.test/1")
@@ -74,18 +80,15 @@ def test_agreeing_second_source_raises_confidence_and_adds_evidence(session):
 
 def test_disagreeing_severity_creates_conflict_and_keeps_higher(session):
     a, b = seed(session)
-    merge_triple(
-        session, entity_a_id=a.id, entity_b_id=b.id, mechanism="m",
-        direction="decreases_absorption_of_b", severity=Severity.MODERATE,
-        evidence_grade=EvidenceGrade.B, span="span one", source="openfda",
-        source_url="https://example.test/1",
+    common = dict(
+        entity_a_id=a.id, entity_b_id=b.id, mechanism="m",
+        direction="decreases_absorption_of_b", evidence_grade=EvidenceGrade.B,
+        source_text=SOURCE,
     )
-    merge_triple(
-        session, entity_a_id=a.id, entity_b_id=b.id, mechanism="m",
-        direction="decreases_absorption_of_b", severity=Severity.MAJOR,
-        evidence_grade=EvidenceGrade.B, span="span two", source="pubmed",
-        source_url="https://example.test/2",
-    )
+    merge_triple(session, **common, severity=Severity.MODERATE, span="span one",
+                 source="openfda", source_url="https://example.test/1")
+    merge_triple(session, **common, severity=Severity.MAJOR, span="span two",
+                 source="pubmed", source_url="https://example.test/2")
 
     row = session.scalars(select(Interaction)).one()
     assert row.severity is Severity.MAJOR
@@ -97,18 +100,114 @@ def test_disagreeing_severity_creates_conflict_and_keeps_higher(session):
 
 def test_pair_is_stored_in_a_stable_order(session):
     a, b = seed(session)
+    common = dict(
+        mechanism="m", direction="unclear", severity=Severity.MINOR,
+        evidence_grade=EvidenceGrade.D, source_text=SOURCE,
+    )
 
-    merge_triple(
-        session, entity_a_id=b.id, entity_b_id=a.id, mechanism="m",
-        direction="unclear", severity=Severity.MINOR, evidence_grade=EvidenceGrade.D,
-        span="s", source="openfda", source_url="https://example.test/1",
-    )
-    merge_triple(
-        session, entity_a_id=a.id, entity_b_id=b.id, mechanism="m",
-        direction="unclear", severity=Severity.MINOR, evidence_grade=EvidenceGrade.D,
-        span="s2", source="pubmed", source_url="https://example.test/2",
-    )
+    merge_triple(session, entity_a_id=b.id, entity_b_id=a.id, span="s",
+                 source="openfda", source_url="https://example.test/1", **common)
+    merge_triple(session, entity_a_id=a.id, entity_b_id=b.id, span="s2",
+                 source="pubmed", source_url="https://example.test/2", **common)
 
     rows = list(session.scalars(select(Interaction)).all())
     assert len(rows) == 1
     assert rows[0].entity_a_id < rows[0].entity_b_id
+
+
+# --- The system's governing invariant, enforced at the gate ---
+
+
+def test_unverified_span_is_refused(session):
+    """"No span, no triple" must not depend on the caller remembering to check."""
+    a, b = seed(session)
+
+    with pytest.raises(UnverifiedSpanError):
+        merge_triple(
+            session, entity_a_id=a.id, entity_b_id=b.id, mechanism="m",
+            direction="unclear", severity=Severity.MINOR, evidence_grade=EvidenceGrade.D,
+            span="Calcium triples thyroid hormone levels.",
+            source="openfda", source_url="https://example.test/1", source_text=SOURCE,
+        )
+
+    assert session.scalars(select(Interaction)).all() == []
+    assert session.scalars(select(Evidence)).all() == []
+
+
+def test_typographic_punctuation_still_verifies(session):
+    """Curly apostrophes in FDA text must not manufacture quarantine noise."""
+    a, b = seed(session)
+    source = "St. John’s Wort induces CYP3A4 — reducing statin exposure."
+
+    merge_triple(
+        session, entity_a_id=a.id, entity_b_id=b.id, mechanism="CYP3A4 induction.",
+        direction="decreases_effect_of_b", severity=Severity.MAJOR,
+        evidence_grade=EvidenceGrade.A,
+        span="St. John's Wort induces CYP3A4 - reducing statin exposure.",
+        source="pubmed", source_url="https://example.test/9", source_text=source,
+    )
+
+    assert session.scalars(select(Interaction)).one() is not None
+
+
+# --- Confidence must measure corroboration, not repetition ---
+
+
+def test_reingesting_the_same_source_does_not_inflate_confidence(session):
+    a, b = seed(session)
+    common = dict(
+        entity_a_id=a.id, entity_b_id=b.id, mechanism="Binding reduces absorption.",
+        direction="decreases_absorption_of_b", severity=Severity.MODERATE,
+        evidence_grade=EvidenceGrade.B, span="span one", source="openfda",
+        source_url="https://example.test/1", source_text=SOURCE,
+    )
+    merge_triple(session, **common)
+    merge_triple(session, **common)
+    merge_triple(session, **common)
+
+    row = session.scalars(select(Interaction)).one()
+    assert row.confidence == 0.6
+    assert len(session.scalars(select(Evidence)).all()) == 1
+
+
+# --- A human review decision is not silently overridden ---
+
+
+def test_rejected_interaction_is_not_resurrected(session):
+    a, b = seed(session)
+    interaction = merge_triple(
+        session, entity_a_id=a.id, entity_b_id=b.id, mechanism="m",
+        direction="unclear", severity=Severity.MINOR, evidence_grade=EvidenceGrade.D,
+        span="span one", source="openfda", source_url="https://example.test/1",
+        source_text=SOURCE,
+    )
+    interaction.status = InteractionStatus.REJECTED
+    session.commit()
+
+    merge_triple(
+        session, entity_a_id=a.id, entity_b_id=b.id, mechanism="m",
+        direction="unclear", severity=Severity.MAJOR, evidence_grade=EvidenceGrade.D,
+        span="span two", source="pubmed", source_url="https://example.test/2",
+        source_text=SOURCE,
+    )
+
+    row = session.scalars(select(Interaction)).one()
+    assert row.status is InteractionStatus.REJECTED
+    assert row.severity is Severity.MAJOR  # evidence still accrues for later review
+
+
+def test_evidence_grade_disagreement_is_recorded(session):
+    a, b = seed(session)
+    common = dict(
+        entity_a_id=a.id, entity_b_id=b.id, mechanism="m",
+        direction="unclear", severity=Severity.MINOR, source_text=SOURCE,
+    )
+    merge_triple(session, **common, evidence_grade=EvidenceGrade.A, span="span one",
+                 source="openfda", source_url="https://example.test/1")
+    merge_triple(session, **common, evidence_grade=EvidenceGrade.D, span="span two",
+                 source="pubmed", source_url="https://example.test/2")
+
+    conflict = session.scalars(select(ConflictRecord)).one()
+    assert conflict.field == "evidence_grade"
+    assert conflict.existing_value == "A"
+    assert conflict.incoming_value == "D"
