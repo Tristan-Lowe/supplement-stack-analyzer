@@ -1,0 +1,16 @@
+canonical_name,amount,unit,population,basis,source_url
+Vitamin B6,100,mg,adult,Chronic intake above this level is associated with peripheral neuropathy.,https://ods.od.nih.gov/factsheets/VitaminB6-HealthProfessional/
+Vitamin A,3000,mcg,adult,Preformed vitamin A; hepatotoxicity and teratogenicity above this level.,https://ods.od.nih.gov/factsheets/VitaminA-HealthProfessional/
+Vitamin D3,100,mcg,adult,Hypercalcemia risk above this level.,https://ods.od.nih.gov/factsheets/VitaminD-HealthProfessional/
+Vitamin E,1000,mg,adult,Hemorrhagic effects above this level.,https://ods.od.nih.gov/factsheets/VitaminE-HealthProfessional/
+Niacin,35,mg,adult,Flushing and hepatotoxicity from supplemental nicotinic acid.,https://ods.od.nih.gov/factsheets/Niacin-HealthProfessional/
+Folate,1000,mcg,adult,Supplemental folic acid may mask B12 deficiency above this level.,https://ods.od.nih.gov/factsheets/Folate-HealthProfessional/
+Iron,45,mg,adult,Gastrointestinal distress and toxicity above this level.,https://ods.od.nih.gov/factsheets/Iron-HealthProfessional/
+Zinc,40,mg,adult,Copper depletion and immune suppression above this level.,https://ods.od.nih.gov/factsheets/Zinc-HealthProfessional/
+Selenium,400,mcg,adult,Selenosis — hair and nail loss — above this level.,https://ods.od.nih.gov/factsheets/Selenium-HealthProfessional/
+Magnesium,350,mg,adult,Applies to supplemental magnesium only; osmotic diarrhea above this level.,https://ods.od.nih.gov/factsheets/Magnesium-HealthProfessional/
+Calcium,2500,mg,adult,Hypercalcemia and vascular calcification risk above this level.,https://ods.od.nih.gov/factsheets/Calcium-HealthProfessional/
+Copper,10,mg,adult,Hepatotoxicity above this level.,https://ods.od.nih.gov/factsheets/Copper-HealthProfessional/
+Manganese,11,mg,adult,Neurotoxicity above this level.,https://ods.od.nih.gov/factsheets/Manganese-HealthProfessional/
+Iodine,1100,mcg,adult,Thyroid dysfunction above this level.,https://ods.od.nih.gov/factsheets/Iodine-HealthProfessional/
+Choline,3500,mg,adult,Hypotension and fishy body odor above this level.,https://ods.od.nih.gov/factsheets/Choline-HealthProfessional/
