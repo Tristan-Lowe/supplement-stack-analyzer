@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import enum
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import (
     JSON,
@@ -19,21 +19,21 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
 def utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class Base(DeclarativeBase):
     pass
 
 
-class EntityKind(str, enum.Enum):
+class EntityKind(enum.StrEnum):
     NUTRIENT = "nutrient"
     HERBAL = "herbal"
     DRUG = "drug"
     OTHER = "other"
 
 
-class Severity(str, enum.Enum):
+class Severity(enum.StrEnum):
     """Clinical consequence if the pair is taken together."""
 
     CONTRAINDICATED = "contraindicated"
@@ -43,7 +43,7 @@ class Severity(str, enum.Enum):
     THEORETICAL = "theoretical"
 
 
-class EvidenceGrade(str, enum.Enum):
+class EvidenceGrade(enum.StrEnum):
     """Strength of underlying evidence, independent of severity."""
 
     A = "A"  # human RCT or systematic review
@@ -52,7 +52,7 @@ class EvidenceGrade(str, enum.Enum):
     D = "D"  # in vitro, animal, or mechanistic inference only
 
 
-class InteractionStatus(str, enum.Enum):
+class InteractionStatus(enum.StrEnum):
     PENDING_REVIEW = "pending_review"
     PUBLISHED = "published"
     REJECTED = "rejected"

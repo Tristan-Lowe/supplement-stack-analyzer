@@ -1,4 +1,5 @@
 import pytest
+from pydantic import ValidationError
 
 from ssa.config import Settings
 
@@ -14,5 +15,5 @@ def test_settings_reads_database_url(monkeypatch):
 def test_settings_requires_database_url(monkeypatch):
     monkeypatch.delenv("DATABASE_URL", raising=False)
     monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-test")
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         Settings(_env_file=None)
