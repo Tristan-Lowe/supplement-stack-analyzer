@@ -6,9 +6,15 @@ import re
 import unicodedata
 
 # Surface-form abbreviations seen on real supplement labels and in user input.
+#
+# Two deliberate absences:
+#   "mg" is NOT a key. It is the dose unit on nearly every label, and mapping it to
+#   magnesium would corrupt every dose string that passes through here.
+#   "ala" is NOT a key. It means alpha-LIPOIC acid or alpha-LINOLENIC acid depending
+#   on context. Expanding it to either one would be a guess, and the resolver's
+#   contract is that ambiguity surfaces as Unknown rather than being guessed at.
 ABBREVIATIONS: dict[str, str] = {
     "mag": "magnesium",
-    "mg.": "magnesium",
     "vit": "vitamin",
     "vits": "vitamin",
     "ca": "calcium",
@@ -18,7 +24,6 @@ ABBREVIATIONS: dict[str, str] = {
     "d3": "d3",
     "coq10": "coenzyme q10",
     "nac": "n acetylcysteine",
-    "ala": "alpha lipoic acid",
     "epa": "eicosapentaenoic acid",
     "dha": "docosahexaenoic acid",
 }
@@ -41,7 +46,6 @@ SALT_FORMS: frozenset[str] = frozenset(
         "carbonate",
         "aspartate",
         "fumarate",
-        "bisglycinate chelate",
         "chelate",
         "chelated",
         "monohydrate",
