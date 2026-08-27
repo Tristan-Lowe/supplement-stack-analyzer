@@ -43,8 +43,14 @@ def fetch_interaction_sections(drug_name: str, limit: int = 5) -> list[DrugLabel
         logger.warning("openFDA fetch failed for %r: %s", drug_name, exc)
         return []
 
+    try:
+        results = response.json().get("results", [])
+    except (ValueError, AttributeError) as exc:
+        logger.warning("openFDA returned unparseable body for %r: %s", drug_name, exc)
+        return []
+
     sections: list[DrugLabelSection] = []
-    for result in response.json().get("results", []):
+    for result in results:
         paragraphs = result.get("drug_interactions") or []
         if not paragraphs:
             continue

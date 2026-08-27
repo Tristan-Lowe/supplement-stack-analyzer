@@ -40,7 +40,11 @@ def lookup_drug(name: str) -> DrugConcept | None:
         logger.warning("RxNorm lookup failed for %r: %s", name, exc)
         return None
 
-    ids = response.json().get("idGroup", {}).get("rxnormId", [])
+    try:
+        ids = response.json().get("idGroup", {}).get("rxnormId", [])
+    except (ValueError, AttributeError) as exc:
+        logger.warning("RxNorm returned unparseable body for %r: %s", name, exc)
+        return None
     if not ids:
         return None
     rxcui = ids[0]
@@ -56,9 +60,13 @@ def lookup_drug(name: str) -> DrugConcept | None:
         logger.warning("RxNorm property fetch failed for %s: %s", rxcui, exc)
         return DrugConcept(rxcui=rxcui, name=name)
 
-    concepts = prop.json().get("propConceptGroup", {}).get("propConcept", [])
-    preferred = next(
-        (c["propValue"] for c in concepts if c.get("propName") == "RxNorm Name"),
-        name,
-    )
+    try:
+        concepts = prop.json().get("propConceptGroup", {}).get("propConcept", [])
+        preferred = next(
+            (c["propValue"] for c in concepts if c.get("propName") == "RxNorm Name"),
+            name,
+        )
+    except (ValueError, AttributeError, KeyError, TypeError) as exc:
+        logger.warning("RxNorm property body unusable for %s: %s", rxcui, exc)
+        preferred = name
     return DrugConcept(rxcui=rxcui, name=preferred)

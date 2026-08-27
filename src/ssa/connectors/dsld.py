@@ -47,8 +47,21 @@ def search_labels(query: str, limit: int = 10) -> list[tuple[str, str]]:
         logger.warning("DSLD search failed for %r: %s", query, exc)
         return []
 
-    hits = response.json().get("hits", [])
-    return [(hit["_id"], hit["_source"].get("fullName", "")) for hit in hits]
+    try:
+        hits = response.json().get("hits", [])
+    except (ValueError, AttributeError) as exc:
+        logger.warning("DSLD search returned unparseable body for %r: %s", query, exc)
+        return []
+
+    results: list[tuple[str, str]] = []
+    for hit in hits:
+        dsld_id = (hit or {}).get("_id")
+        if not dsld_id:
+            logger.warning("DSLD search hit without _id, skipped: %r", hit)
+            continue
+        source = (hit.get("_source") or {})
+        results.append((dsld_id, source.get("fullName", "")))
+    return results
 
 
 def fetch_label(dsld_id: str) -> SupplementLabel | None:
@@ -65,7 +78,12 @@ def fetch_label(dsld_id: str) -> SupplementLabel | None:
         logger.warning("DSLD label fetch failed for %s: %s", dsld_id, exc)
         return None
 
-    payload = response.json()
+    try:
+        payload = response.json()
+    except (ValueError, AttributeError) as exc:
+        logger.warning("DSLD label %s returned unparseable body: %s", dsld_id, exc)
+        return None
+
     label = SupplementLabel(
         dsld_id=dsld_id,
         full_name=payload.get("fullName", ""),
@@ -80,13 +98,19 @@ def fetch_label(dsld_id: str) -> SupplementLabel | None:
         if not quantities:
             label.unquantified.append(name)
             continue
-        first = quantities[0]
-        label.ingredients.append(
-            LabelIngredient(
-                name=name,
-                amount=float(first["quantity"]),
-                unit=first["unit"],
-            )
-        )
+
+        # A malformed quantity ("trace", a missing key, a null) must not crash the
+        # whole label. Record it as unmeasured so the analysis engine can tell the
+        # user what it could not check, rather than silently omitting it.
+        try:
+            first = quantities[0]
+            amount = float(first["quantity"])
+            unit = first["unit"]
+        except (KeyError, TypeError, ValueError, IndexError) as exc:
+            logger.warning("DSLD label %s: unusable quantity for %r (%s)", dsld_id, name, exc)
+            label.unquantified.append(name)
+            continue
+
+        label.ingredients.append(LabelIngredient(name=name, amount=amount, unit=unit))
 
     return label
