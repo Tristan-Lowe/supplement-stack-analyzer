@@ -48,18 +48,21 @@ def check_redundancy(session: Session, doses: list[ResolvedDose]) -> list[Findin
         units = {c.unit for c in contributions if c.unit is not None}
         amounts = [c.amount for c in contributions if c.amount is not None]
 
+        lead = f"{name} appears in {len(contributions)} products ({labels}), "
+
         if len(units) == 1 and len(amounts) == len(contributions):
             unit = units.pop()
-            total = sum(amounts)
-            total_text = f"{total:g}"
-            detail = (
-                f"{name} appears in {len(contributions)} products ({labels}), "
-                f"totalling {total_text} {unit} per day."
-            )
+            detail = lead + f"totalling {sum(amounts):g} {unit} per day."
+        elif len(units) > 1:
+            detail = lead + "reported in different units, so no cumulative total is shown."
         else:
+            # Units agree (or are absent) but at least one product states no dose.
+            # Saying "different units" here would be factually false about the
+            # user's own stack, which costs trust for no benefit.
+            missing = len(contributions) - len(amounts)
             detail = (
-                f"{name} appears in {len(contributions)} products ({labels}), "
-                f"reported in different units, so no cumulative total is shown."
+                lead
+                + f"but {missing} of them state no dose, so no cumulative total is shown."
             )
 
         findings.append(
