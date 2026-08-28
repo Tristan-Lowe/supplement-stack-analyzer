@@ -23,6 +23,9 @@ dev = [
     "responses>=0.25",
 ]
 
+[project.scripts]
+ssa = "ssa.cli:main"
+
 [build-system]
 requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
