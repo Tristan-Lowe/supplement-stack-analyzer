@@ -33,9 +33,15 @@ class AnalysisReport:
     unresolved: list[str] = field(default_factory=list)
     summary: str = ""
     disclaimer: str = DISCLAIMER
+    items_count: int = 0
 
 
-def _summarize(findings: list[Finding], resolved_count: int, unresolved: list[str]) -> str:
+def _summarize(
+    findings: list[Finding],
+    resolved_count: int,
+    unresolved: list[str],
+    items_count: int = 0,
+) -> str:
     """Build the headline sentence.
 
     The no-findings wording is load-bearing and deliberately not reassuring: it
@@ -54,6 +60,13 @@ def _summarize(findings: list[Finding], resolved_count: int, unresolved: list[st
             f"No known interactions among the {resolved_count} "
             f"compound{compounds} we could identify."
         )
+
+    # Entering the same product twice yields fewer distinct compounds than entries.
+    # Saying only "1 compound" to someone who typed two lines reads like we dropped one.
+    identified_entries = items_count - len(unresolved)
+    if items_count and identified_entries > resolved_count:
+        entry_word = "entries" if identified_entries != 1 else "entry"
+        lead = lead.rstrip(".") + f", from {identified_entries} {entry_word} entered."
 
     if unresolved:
         items = "s" if len(unresolved) != 1 else ""
@@ -117,9 +130,11 @@ def analyze_stack(session: Session, stack_text: str) -> AnalysisReport:
         findings=ranked,
         resolved_count=resolved_count,
         unresolved=unresolved,
+        items_count=len(items),
         summary=_summarize(
             [f for f in ranked if f.kind is not FindingKind.UNRESOLVED],
             resolved_count,
             unresolved,
+            items_count=len(items),
         ),
     )

@@ -10,12 +10,24 @@ from ssa.connectors.ods import load_upper_limits
 from ssa.connectors.openfda import fetch_interaction_sections
 from ssa.db import make_engine, make_session_factory
 from ssa.extract.llm import make_client
-from ssa.models import PipelineRun, utcnow
+from ssa.models import Base, PipelineRun, utcnow
 from ssa.pipeline import ingest_section
 
 
 def _session():
     return make_session_factory(make_engine())()
+
+
+def cmd_init_db(args: argparse.Namespace) -> int:
+    """Create the schema on the configured database.
+
+    Without this a first-time user has no route from a fresh DATABASE_URL to a
+    usable database, since Alembic migrations are not wired up yet.
+    """
+    engine = make_engine()
+    Base.metadata.create_all(engine)
+    print(f"Schema created on {engine.url.render_as_string(hide_password=True)}")
+    return 0
 
 
 def cmd_seed(args: argparse.Namespace) -> int:
@@ -101,6 +113,9 @@ def cmd_analyze(args: argparse.Namespace) -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(prog="ssa")
     subparsers = parser.add_subparsers(dest="command", required=True)
+
+    init_db = subparsers.add_parser("init-db", help="Create the schema on DATABASE_URL")
+    init_db.set_defaults(func=cmd_init_db)
 
     seed = subparsers.add_parser("seed", help="Load upper intake limits from CSV")
     seed.add_argument("--csv", default="data/upper_limits.csv")

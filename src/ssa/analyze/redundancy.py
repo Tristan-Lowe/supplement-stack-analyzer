@@ -11,7 +11,7 @@ from dataclasses import dataclass
 
 from sqlalchemy.orm import Session
 
-from ssa.analyze.findings import Finding, FindingKind, Tier
+from ssa.analyze.findings import Finding, FindingKind, Tier, format_labels
 from ssa.models import Entity, Severity
 
 
@@ -43,7 +43,7 @@ def check_redundancy(session: Session, doses: list[ResolvedDose]) -> list[Findin
 
         entity = session.get(Entity, entity_id)
         name = entity.canonical_name if entity else f"entity {entity_id}"
-        labels = ", ".join(c.source_label for c in contributions)
+        labels = format_labels([c.source_label for c in contributions])
 
         units = {c.unit for c in contributions if c.unit is not None}
         amounts = [c.amount for c in contributions if c.amount is not None]

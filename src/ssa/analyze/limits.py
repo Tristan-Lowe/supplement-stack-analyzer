@@ -22,7 +22,7 @@ from collections import defaultdict
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from ssa.analyze.findings import Citation, Finding, FindingKind, Tier
+from ssa.analyze.findings import Citation, Finding, FindingKind, Tier, format_labels
 from ssa.analyze.redundancy import ResolvedDose
 from ssa.models import Entity, Severity, UpperLimit
 
@@ -60,7 +60,7 @@ def check_upper_limits(session: Session, doses: list[ResolvedDose]) -> list[Find
         limit_text = f"{limit.amount:g}"
 
         if usable and total > limit.amount:
-            labels = ", ".join(c.source_label for c in usable)
+            labels = format_labels([c.source_label for c in usable])
             qualifier = (
                 f" This counts only the {len(usable)} of {len(contributions)} sources we could "
                 f"measure, so your real total is higher."
@@ -88,7 +88,7 @@ def check_upper_limits(session: Session, doses: list[ResolvedDose]) -> list[Find
         if unusable:
             # Under the ceiling on what we could measure — but we could not measure
             # everything, so we must not imply the total is within the limit.
-            missing = ", ".join(c.source_label for c in unusable)
+            missing = format_labels([c.source_label for c in unusable])
             measured = (
                 f"The {len(usable)} source(s) we could measure total {total:g} {limit.unit}, "
                 f"against a limit of {limit_text} {limit.unit}. "

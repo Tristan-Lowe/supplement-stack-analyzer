@@ -42,6 +42,19 @@ class Finding:
     tier: Tier = Tier.GRAPH
 
 
+def format_labels(labels: list[str]) -> str:
+    """Render source labels for display, collapsing repeats.
+
+    A user who enters the same product twice should see "Vitamin B6 x2", not
+    "Vitamin B6, Vitamin B6" — the repeated form reads like a rendering bug and
+    tells the reader nothing.
+    """
+    counts: dict[str, int] = {}
+    for label in labels:
+        counts[label] = counts.get(label, 0) + 1
+    return ", ".join(name if n == 1 else f"{name} x{n}" for name, n in counts.items())
+
+
 def rank_findings(findings: list[Finding]) -> list[Finding]:
     """Order findings by severity, then graph tier over fallback, then confidence.
 
