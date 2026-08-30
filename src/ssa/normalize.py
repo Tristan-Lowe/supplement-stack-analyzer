@@ -72,14 +72,34 @@ def normalize_name(raw: str) -> str:
     return " ".join(tokens)
 
 
-def strip_salt_forms(normalized: str) -> str:
-    """Reduce a normalized name to its active element by dropping salt/chelate words.
+# Stereochemistry prefixes. Ubiquitous on labels: L-theanine, L-carnitine,
+# D-aspartic acid, magnesium L-threonate, acetyl-L-carnitine.
+STEREO_MARKERS: frozenset[str] = frozenset({"l", "d", "dl", "ld"})
 
-    Only strips when at least one non-salt token remains, so "citrate" alone
-    is left intact rather than reduced to an empty string.
+
+def strip_salt_forms(normalized: str) -> str:
+    """Reduce a normalized name to its active element.
+
+    Drops salt and chelate words, and stereochemistry prefixes.
+
+    A stereo marker is only dropped when another token follows it. That guard is
+    load-bearing: "vitamin d" would otherwise reduce to "vitamin", silently
+    turning a real compound into a term the resolver treats as too vague to
+    resolve. "magnesium l threonate" -> "magnesium" is the case we want.
+
+    Only strips when at least one token remains, so "citrate" alone is left
+    intact rather than reduced to an empty string.
     """
     tokens = normalized.split(" ")
-    kept = [t for t in tokens if t not in SALT_FORMS]
+
+    without_stereo: list[str] = []
+    for position, token in enumerate(tokens):
+        is_last = position == len(tokens) - 1
+        if token in STEREO_MARKERS and not is_last:
+            continue
+        without_stereo.append(token)
+
+    kept = [t for t in without_stereo if t not in SALT_FORMS]
     if not kept:
         return normalized
     return " ".join(kept)

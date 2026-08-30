@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 from ssa.db import make_engine, make_session_factory
 from ssa.models import Entity
 from ssa.resolver import Resolved, resolve
+from ssa.stack import parse_stack_text
 
 TARGET_ACCURACY = 0.95
 
@@ -53,13 +54,26 @@ def load_gold(path: str | Path) -> list[GoldCase]:
     return cases
 
 
+def _resolve_as_engine_would(session: Session, raw: str):
+    """Resolve exactly the way analyze_stack does — dose stripped off first.
+
+    The gold set carries realistic user input like "mag glycinate 400mg". The
+    request path parses that into name and dose before resolving, so an eval that
+    hands the raw string straight to the resolver measures a path production never
+    takes and reports a number nobody can act on.
+    """
+    items = parse_stack_text(raw)
+    name = items[0].raw if items else raw
+    return resolve(session, name)
+
+
 def evaluate(session: Session, cases: list[GoldCase]) -> EvalReport:
     """Score the resolver. A case with expected=None is correct iff it did NOT resolve."""
     correct = 0
     failures: list[tuple[str, str | None, str]] = []
 
     for case in cases:
-        result = resolve(session, case.raw)
+        result = _resolve_as_engine_would(session, case.raw)
 
         if case.expected is None:
             if isinstance(result, Resolved):
@@ -93,6 +107,13 @@ def main() -> int:
         session.close()
 
     print(f"Resolution accuracy: {report.accuracy:.1%} ({report.correct}/{report.total})")
+    wrong = [f for f in report.failures if f[2].startswith("resolved to")]
+    print(
+        f"  of {len(report.failures)} failures: {len(wrong)} resolved to the WRONG entity, "
+        f"{len(report.failures) - len(wrong)} were not resolved at all."
+    )
+    if wrong:
+        print("  A wrong resolution is far worse than a non-resolution here.")
     if report.failures:
         print("\nFailures:")
         for raw, expected, actual in report.failures:

@@ -26,3 +26,16 @@ def test_strip_salt_forms_removes_known_salts():
 
 def test_strip_salt_forms_leaves_unknown_words():
     assert strip_salt_forms("ashwagandha root") == "ashwagandha root"
+
+
+def test_strip_salt_forms_drops_stereochemistry_prefixes():
+    assert strip_salt_forms("magnesium l threonate") == "magnesium"
+    assert strip_salt_forms("l theanine") == "theanine"
+    assert strip_salt_forms("d aspartic acid") == "aspartic acid"
+    assert strip_salt_forms("acetyl l carnitine") == "acetyl carnitine"
+
+
+def test_trailing_letter_is_never_treated_as_a_stereo_prefix():
+    """"vitamin d" must not reduce to "vitamin", which the resolver rejects as vague."""
+    assert strip_salt_forms("vitamin d") == "vitamin d"
+    assert strip_salt_forms("vitamin d3") == "vitamin d3"

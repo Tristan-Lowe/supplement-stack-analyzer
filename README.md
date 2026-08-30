@@ -1,23 +1,206 @@
 # Supplement Stack Analyzer
 
-Supplement Stack Analyzer finds interactions, redundancies, upper-limit breaches, and timing conflicts across a person's supplements and prescriptions.
+Finds interactions, redundancies, upper-limit breaches, and timing conflicts across
+everything a person takes — supplements **and** prescriptions.
 
-## Core rule
+Most people who take supplements take several at once, often alongside medication,
+with no check on whether those compounds fight each other. The failure modes are
+concrete: St. John's Wort induces CYP3A4 and defeats SSRIs and statins; magnesium
+chelates fluoroquinolone antibiotics; a multivitamin plus a B-complex plus a separate
+B12 stacks the same ingredient three ways past a real toxicity ceiling. The only
+reliable check today is a pharmacist, and most people never ask one.
 
-The LLM never decides whether an interaction exists. It extracts candidate triples from source documents offline, and every triple must carry a verbatim source span that is programmatically verified before storage. At analysis time, detection is a deterministic database lookup — no LLM in the request path.
+---
+
+## Why this is buildable now
+
+**The NLM discontinued its free Drug Interaction API in January 2024**, with no
+replacement. RxNorm name normalization survives; the interaction endpoints are gone,
+and that data now sits behind DrugBank and Natural Medicines — both commercial.
+
+The *primary sources*, however, are all still free and public:
+
+| Source | Provides |
+|---|---|
+| [openFDA](https://open.fda.gov/) | Structured product labels, including free-text "Drug Interactions" sections |
+| [NIH DSLD](https://dsld.od.nih.gov/) | 207,000+ dietary supplement labels with ingredient breakdowns |
+| [NIH ODS](https://ods.od.nih.gov/) | Per-nutrient monographs and tolerable upper intake levels |
+| [RxNorm / RxNav](https://rxnav.nlm.nih.gov/) | Drug name normalization, RxCUI identifiers |
+
+So the structured, free supplement–drug interaction layer no longer exists — which is
+why every free checker out there is thin. Rebuilding that layer by extracting it from
+primary sources is the actual product.
+
+---
+
+## The rule the whole design rests on
+
+> **The LLM never decides whether an interaction exists.**
+
+It does exactly two jobs: parse messy input into normalized compounds, and turn an
+already-retrieved fact into readable prose. Interaction **detection** is a
+deterministic database lookup.
+
+That single constraint buys three things at once:
+
+- **Auditability.** Every stored claim carries a verbatim source span, verified
+  programmatically before storage. No span, no triple — enforced at the gate, not by
+  convention.
+- **Cost.** The expensive model work happens offline in batch. A user request costs
+  a database query.
+- **Substance.** This is a retrieval and data-engineering system, not a chatbot with
+  a system prompt.
+
+---
+
+## Architecture
+
+```mermaid
+graph TD
+    subgraph BUILD["Build time — offline batch"]
+        A["Sources<br/>openFDA · DSLD · ODS · RxNorm"] --> B["Entity registry<br/>RxCUI · UNII · DSLD ids"]
+        A --> C["LLM extraction<br/>schema-enforced triples"]
+        C --> D["Span verification<br/>verbatim, programmatic"]
+        D --> E["Validation gates<br/>dedup · conflict · confidence"]
+        B --> E
+        E --> F[("Postgres")]
+        E --> G["Quarantine<br/>never silently dropped"]
+    end
+    subgraph RUN["Request time — no LLM"]
+        H["Stack input"] --> I["Entity resolution<br/>exact → salt-strip → fuzzy"]
+        I --> J["Analysis engine<br/>4 deterministic checks"]
+        F --> J
+        J --> K["Ranked findings<br/>+ citations"]
+    end
+```
+
+The analysis engine runs four independent checks: **pairwise** interaction lookup,
+**redundancy** across products, **cumulative dose** against upper intake limits, and
+**timing** separation rules.
+
+---
+
+## Design decisions, and why
+
+**Interaction detection is a lookup, never a generation.** Pure runtime RAG was
+considered and rejected. Its failure mode is a *silent miss* — retrieval comes back
+empty and the tool reports a confident all-clear. That is the worst possible outcome
+for a safety tool, and it is invisible in testing.
+
+**The system never says "you are safe."** It says *"no known interactions among the N
+compounds we could identify."* Those are different claims, and the difference is the
+entire ethical and legal posture of the product.
+
+**Units are never converted.** If a dose is reported in mcg and the published limit is
+in mg, the check is skipped and reported as unassessed. A wrong mcg↔IU conversion
+would produce a false all-clear on a toxicity ceiling — worse than no answer.
+
+**The checks never go silent.** An entity whose doses can't all be measured is still
+assessed on the part that can be. If the measurable portion alone exceeds the ceiling,
+that's a certain breach regardless of the rest. Otherwise the user is told the check
+was incomplete, because silence reads as an all-clear.
+
+**Confidence measures corroboration, not repetition.** Evidence is deduplicated by
+source URL, so re-ingesting the same document can't walk a claim's confidence upward
+by agreeing with itself.
+
+**Ambiguity is surfaced, never guessed.** `"Vitamin B"` doesn't resolve to anything and
+doesn't pretend to. Two entities sharing an alias return `Ambiguous` with both
+candidates rather than silently picking one. `ALA` is deliberately absent from the
+abbreviation table — it means alpha-*lipoic* acid or alpha-*linolenic* acid depending
+on context, and picking one would be a guess.
+
+**Human review decisions are not overridden.** An interaction a reviewer marked
+`REJECTED` stays rejected even when a later, higher-severity source arrives. Evidence
+still accrues so the call can be revisited deliberately.
+
+---
+
+## Status — honest version
+
+**The core is built and runs. The knowledge graph is empty.**
+
+Every capability below is proven by 112 tests against seeded fixtures. **No real
+ingestion has run yet**, so the system has never been tested against actual FDA prose.
+Expect the first run to produce quarantine noise; the quarantine reason distribution is
+the signal for tuning the extraction prompt.
+
+| Built | Not yet |
+|---|---|
+| Entity registry, 4-stage resolver, resolution eval harness | Real ingestion — the graph has no interactions in it |
+| 4 source connectors, all hardened to degrade rather than crash | LLM parser for genuinely messy input |
+| Extraction pipeline: schema → Claude → span verification → gates | Branded product expansion in the request path |
+| 4 analysis checks + ranking orchestrator | Interaction gold set and the recall metric |
+| Alembic migrations, CLI | Web UI, deployment |
+
+There is deliberately **no accuracy number here**. The recall metric that would justify
+one requires a 300–500 pair hand-labeled gold set that does not exist yet. Publishing a
+figure derived from my own fixtures would be meaningless.
+
+---
 
 ## Setup
 
-```
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
+```bash
+python -m venv .venv && .venv/Scripts/activate
 pip install -e ".[dev]"
-copy .env.example .env
+cp .env.example .env    # then fill in DATABASE_URL and ANTHROPIC_API_KEY
 alembic upgrade head
 ```
 
-## Test
+`DATABASE_URL` must name the driver explicitly — `postgresql+psycopg://...`, not
+`postgresql://...`.
+
+## Usage
+
+```bash
+ssa init-db                                      # create schema (or: alembic upgrade head)
+ssa seed                                         # load NIH ODS upper intake limits
+ssa ingest levothyroxine                         # extract interactions from openFDA labels
+ssa analyze "Vitamin B6 60mg, Vitamin B6 60mg"   # analyze a stack
+```
+
+`ssa ingest` calls the Anthropic API and costs money. Nothing else does.
+
+Example output:
 
 ```
-pytest -v
+2 findings across 1 identified compound, from 2 entries entered.
+
+[MAJOR] Vitamin B6 exceeds its tolerable upper intake level
+  Your total Vitamin B6 intake is 120 mg per day from Vitamin B6 x2, above the
+  published adult upper limit of 100 mg. Chronic intake above this level is
+  associated with peripheral neuropathy.
+  source: https://ods.od.nih.gov/factsheets/VitaminB6-HealthProfessional/
+
+[MINOR] Vitamin B6 appears more than once
+  Vitamin B6 appears in 2 products (Vitamin B6 x2), totalling 120 mg per day.
+
+This tool reports published information for education. It is not medical advice
+and does not replace a pharmacist or physician.
 ```
+
+## Tests
+
+```bash
+pytest -v && ruff check src tests evals
+```
+
+112 tests. No test makes a network call or an API call — HTTP is mocked with
+`responses`, the Anthropic client with `MagicMock`. Tests run against in-memory
+SQLite; production is Postgres, and all column types are kept portable.
+
+---
+
+## Stack
+
+Python 3.11+ · SQLAlchemy 2 · Alembic · Postgres (Neon) · Pydantic v2 ·
+Anthropic SDK (`claude-opus-5`) · pytest · ruff
+
+---
+
+## Not medical advice
+
+This is an educational information tool. It reports published findings with citations
+and does not make patient-specific treatment recommendations. It does not replace a
+pharmacist or physician.
