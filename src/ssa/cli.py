@@ -12,6 +12,7 @@ from ssa.db import make_engine, make_session_factory
 from ssa.extract.llm import make_client
 from ssa.models import Base, PipelineRun, utcnow
 from ssa.pipeline import content_key, ingest_section
+from ssa.review import approve, list_pending, reject
 
 
 def _session():
@@ -132,6 +133,42 @@ def cmd_analyze(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_review(args: argparse.Namespace) -> int:
+    session = _session()
+    try:
+        if args.action == "list":
+            items = list_pending(session)
+            if not items:
+                print("Nothing awaiting review.")
+                return 0
+            print(f"{len(items)} interaction(s) awaiting review:\n")
+            for item in items:
+                print(f"[{item.interaction_id}] {item.pair}")
+                print(
+                    f"    {item.severity.upper()} | evidence {item.evidence_grade} "
+                    f"| confidence {item.confidence:.2f}"
+                )
+                print(f"    {item.mechanism}")
+                for span in item.spans[:1]:
+                    print(f'    quoted: "{span[:120]}"')
+                for source in item.sources[:1]:
+                    print(f"    source: {source}")
+                print()
+            print("Approve with:  ssa review approve <id>")
+            print("Reject with:   ssa review reject <id>")
+            return 0
+
+        action = approve if args.action == "approve" else reject
+        result = action(session, args.id)
+        if result is None:
+            print(f"No interaction with id {args.id}.")
+            return 1
+        print(f"Interaction {args.id} -> {result.status.value}")
+        return 0
+    finally:
+        session.close()
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(prog="ssa")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -146,6 +183,11 @@ def main() -> int:
     ingest = subparsers.add_parser("ingest", help="Ingest openFDA label sections for a drug")
     ingest.add_argument("drug")
     ingest.set_defaults(func=cmd_ingest)
+
+    review = subparsers.add_parser("review", help="Review interactions held for approval")
+    review.add_argument("action", choices=["list", "approve", "reject"])
+    review.add_argument("id", nargs="?", type=int, help="interaction id (approve/reject)")
+    review.set_defaults(func=cmd_review)
 
     analyze = subparsers.add_parser("analyze", help="Analyze a stack given as text")
     analyze.add_argument("stack")

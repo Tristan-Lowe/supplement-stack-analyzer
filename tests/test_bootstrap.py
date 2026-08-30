@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 import responses
 from sqlalchemy import select
 
-from ssa.bootstrap import bootstrap_entity
+from ssa.bootstrap import bootstrap_entity, name_variants
 from ssa.connectors.rxnorm import RXNORM_BASE, DrugConcept, lookup_ingredient
 from ssa.extract.schema import CandidateTriple, ExtractionResult
 from ssa.models import Entity, EntityKind, EvidenceGrade, Interaction, Severity
@@ -96,3 +96,52 @@ def test_pipeline_bootstraps_then_stores(session):
     assert stats["quarantined"] == 0
     assert stats["bootstrapped"] == 1
     assert len(session.scalars(select(Interaction)).all()) == 1
+
+
+# --- Variant generation must not turn a class warning into a single-drug claim ---
+
+
+def test_dose_qualifiers_are_stripped():
+    assert "Furosemide" in name_variants("Furosemide (> 80 mg IV)")
+    assert "Propranolol" in name_variants("Propranolol (> 160 mg/day)")
+
+
+def test_parenthetical_synonym_is_offered():
+    assert "sodium polystyrene sulfonate" in name_variants(
+        "Kayexalate (sodium polystyrene sulfonate)"
+    )
+
+
+def test_example_parenthetical_is_never_offered():
+    """"e.g." marks one member of a class. Binding the class warning to it under-reports."""
+    variants = name_variants("Tricyclic antidepressants (e.g., amitriptyline)")
+    # The raw name is always tried and of course contains the word; what must never
+    # happen is offering the example as a standalone name RxNorm could bind to.
+    assert "amitriptyline" not in variants
+    assert variants == [
+        "Tricyclic antidepressants (e.g., amitriptyline)",
+        "Tricyclic antidepressants",
+    ]
+
+
+def test_class_term_is_refused_even_when_rxnorm_answers(session):
+    """RxNorm maps "Salicylates" to salicylic acid — a different drug entirely."""
+    with patch(
+        "ssa.bootstrap.lookup_ingredient",
+        return_value=DrugConcept(rxcui="35827", name="salicylic acid"),
+    ):
+        assert bootstrap_entity(session, "Salicylates (> 2 g/day)") is None
+
+    assert session.scalars(select(Entity)).all() == []
+
+
+def test_subset_name_still_matches(session):
+    """"cholestyramine" -> "cholestyramine resin" is the same drug and must pass."""
+    with patch(
+        "ssa.bootstrap.lookup_ingredient",
+        return_value=DrugConcept(rxcui="2447", name="cholestyramine resin"),
+    ):
+        entity = bootstrap_entity(session, "Cholestyramine")
+
+    assert entity is not None
+    assert entity.canonical_name == "Cholestyramine Resin"
