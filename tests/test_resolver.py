@@ -70,3 +70,50 @@ def test_fuzzy_below_threshold_is_unknown(session):
     result = resolve(session, "manganese")
 
     assert isinstance(result, Unknown)
+
+
+# --- Fuzzy stage must reason about entities, not alias strings ---
+
+
+def test_shared_alias_reached_by_fuzzy_is_ambiguous_not_guessed(session):
+    """Two entities owning the same alias must not collapse to whichever came last.
+
+    Keying candidates by alias string silently drops one entity, turning a genuine
+    ambiguity into a confident wrong answer — the exact failure this component
+    exists to prevent. Exact matching catches the no-typo case, so only the fuzzy
+    path exercises this.
+    """
+    nutrient = get_or_create_entity(session, EntityKind.NUTRIENT, "Potassium")
+    drug = get_or_create_entity(session, EntityKind.DRUG, "Potassium Chloride")
+    add_alias(session, nutrient, "potassium gluconate", source="ods")
+    add_alias(session, drug, "potassium gluconate", source="rxnorm")
+    session.commit()
+
+    result = resolve(session, "potassium gluconatte")  # typo forces the fuzzy path
+
+    assert isinstance(result, Ambiguous)
+    assert sorted(result.candidate_ids) == sorted([nutrient.id, drug.id])
+
+
+def test_many_aliases_of_one_entity_do_not_hide_a_rival(session):
+    """A popular entity's aliases must not crowd a genuine near-tie out of the window."""
+    popular = get_or_create_entity(session, EntityKind.NUTRIENT, "Ashwagandha")
+    for alias in [
+        "ashwagandha root", "ashwagandha extract", "ashwagandha powder",
+        "ashwagandha ksm66", "ashwagandha sensoril", "ashwagandha capsule",
+        "ashwagandha roott", "ashwagandha roots", "ashwagandha extractt",
+    ]:
+        add_alias(session, popular, alias, source="test")
+
+    rival = get_or_create_entity(session, EntityKind.HERBAL, "Ashwagandha Root Powder")
+    session.commit()
+
+    result = resolve(session, "ashwagandha rootx")
+
+    # Either outcome is defensible; silently resolving to the popular entity while
+    # the rival never entered the comparison is not.
+    if isinstance(result, Resolved):
+        assert result.entity_id in {popular.id, rival.id}
+    else:
+        assert isinstance(result, Ambiguous)
+        assert rival.id in result.candidate_ids

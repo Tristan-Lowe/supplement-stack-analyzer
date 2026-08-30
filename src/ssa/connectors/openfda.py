@@ -8,11 +8,13 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
+from urllib.parse import quote
 
 import requests
 
 OPENFDA_BASE = "https://api.fda.gov"
 LABEL_URL_TEMPLATE = "https://api.fda.gov/drug/label.json?search=id:{label_id}"
+NAME_URL_TEMPLATE = "https://api.fda.gov/drug/label.json?search=openfda.generic_name:{name}"
 TIMEOUT_SECONDS = 20
 
 logger = logging.getLogger(__name__)
@@ -56,12 +58,24 @@ def fetch_interaction_sections(drug_name: str, limit: int = 5) -> list[DrugLabel
             continue
         label_id = result.get("id", "")
         generic_names = result.get("openfda", {}).get("generic_name", [])
+        resolved_name = generic_names[0] if generic_names else drug_name
+
+        # These URLs are shown to users as citations. An unescaped id, or a result
+        # with no id at all, produces a visibly broken link — sloppiness on exactly
+        # the element meant to establish trust.
+        if label_id:
+            source_url = LABEL_URL_TEMPLATE.format(label_id=quote(label_id, safe=""))
+        else:
+            source_url = NAME_URL_TEMPLATE.format(
+                name=quote(f'"{resolved_name}"', safe="")
+            )
+
         sections.append(
             DrugLabelSection(
                 label_id=label_id,
-                generic_name=generic_names[0] if generic_names else drug_name,
+                generic_name=resolved_name,
                 text="\n\n".join(paragraphs),
-                source_url=LABEL_URL_TEMPLATE.format(label_id=label_id),
+                source_url=source_url,
             )
         )
     return sections

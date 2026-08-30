@@ -1,7 +1,7 @@
 import pytest
 from sqlalchemy import select
 
-from ssa.extract.gates import UnverifiedSpanError, merge_triple
+from ssa.extract.gates import InvalidDirectionError, UnverifiedSpanError, merge_triple
 from ssa.models import (
     ConflictRecord,
     Entity,
@@ -211,3 +211,18 @@ def test_evidence_grade_disagreement_is_recorded(session):
     assert conflict.field == "evidence_grade"
     assert conflict.existing_value == "A"
     assert conflict.incoming_value == "D"
+
+
+def test_invalid_direction_is_refused(session):
+    """The Direction Literal constrains the LLM; the gate must constrain every caller."""
+    a, b = seed(session)
+
+    with pytest.raises(InvalidDirectionError):
+        merge_triple(
+            session, entity_a_id=a.id, entity_b_id=b.id, mechanism="m",
+            direction="makes_it_weird", severity=Severity.MINOR,
+            evidence_grade=EvidenceGrade.D, span="span one", source="openfda",
+            source_url="https://example.test/1", source_text=SOURCE,
+        )
+
+    assert session.scalars(select(Interaction)).all() == []

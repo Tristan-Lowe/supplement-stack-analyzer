@@ -23,6 +23,11 @@ Direction = Literal[
 ]
 
 
+# The gate validates against this too. The Literal above constrains only what the
+# LLM may emit; without this a caller could write any string into the database.
+VALID_DIRECTIONS: frozenset[str] = frozenset(Direction.__args__)
+
+
 class CandidateTriple(BaseModel):
     """One extracted interaction claim, not yet verified or stored."""
 

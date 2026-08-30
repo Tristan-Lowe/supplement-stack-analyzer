@@ -25,6 +25,7 @@ from __future__ import annotations
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from ssa.extract.schema import VALID_DIRECTIONS
 from ssa.extract.verify import span_appears_in
 from ssa.models import (
     REVIEW_REQUIRED_AT_OR_ABOVE,
@@ -44,6 +45,10 @@ MAX_CONFIDENCE = 0.99
 
 class UnverifiedSpanError(ValueError):
     """Raised when a triple reaches the gate with a span absent from its source."""
+
+
+class InvalidDirectionError(ValueError):
+    """Raised when a triple carries a direction outside the controlled vocabulary."""
 
 
 def _ordered_pair(entity_a_id: int, entity_b_id: int) -> tuple[int, int]:
@@ -94,6 +99,11 @@ def merge_triple(
     and conflicts still accrue so the decision can be revisited deliberately, but
     the status stays put.
     """
+    if direction not in VALID_DIRECTIONS:
+        raise InvalidDirectionError(
+            f"{direction!r} is not one of {sorted(VALID_DIRECTIONS)}"
+        )
+
     if not span_appears_in(span, source_text):
         raise UnverifiedSpanError(
             f"span not found in source ({source_url}): {span[:80]!r}"
