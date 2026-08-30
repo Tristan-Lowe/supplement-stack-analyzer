@@ -11,7 +11,7 @@ from ssa.connectors.openfda import fetch_interaction_sections
 from ssa.db import make_engine, make_session_factory
 from ssa.extract.llm import make_client
 from ssa.models import Base, PipelineRun, utcnow
-from ssa.pipeline import ingest_section
+from ssa.pipeline import content_key, ingest_section
 
 
 def _session():
@@ -64,7 +64,24 @@ def cmd_ingest(args: argparse.Namespace) -> int:
             session.commit()
             return 1
 
+        # Deduplicate by content before paying for extraction. openFDA returns one
+        # section per manufacturer label, and for generic drugs those carry the
+        # same FDA-mandated wording — warfarin returns five sections that are
+        # 97.8-100% identical. Extracting each would cost 5x for 1x of information.
+        seen: set[str] = set()
+        unique: list = []
         for section in sections:
+            key = content_key(section.text)
+            if key in seen:
+                continue
+            seen.add(key)
+            unique.append(section)
+
+        skipped = len(sections) - len(unique)
+        if skipped:
+            print(f"Skipped {skipped} duplicate label section(s) of {len(sections)}.")
+
+        for section in unique:
             stats = ingest_section(
                 session,
                 client,
@@ -78,7 +95,12 @@ def cmd_ingest(args: argparse.Namespace) -> int:
                 totals[key] += stats[key]
 
         run.finished_at = utcnow()
-        run.stats = {"drug": args.drug, "sections": len(sections), **totals}
+        run.stats = {
+            "drug": args.drug,
+            "sections_fetched": len(sections),
+            "sections_extracted": len(unique),
+            **totals,
+        }
         session.commit()
         run_id = run.id
     finally:

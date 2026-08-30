@@ -226,3 +226,43 @@ def test_invalid_direction_is_refused(session):
         )
 
     assert session.scalars(select(Interaction)).all() == []
+
+
+def test_same_wording_under_different_urls_is_not_corroboration(session):
+    """Generic labels replicate identical FDA wording across manufacturers.
+
+    Five manufacturers carrying one sentence is one source, not five. Counting
+    them separately would walk confidence 0.6 -> 0.99 on a single observation,
+    in the number used to rank findings.
+    """
+    a, b = seed(session)
+    common = dict(
+        entity_a_id=a.id, entity_b_id=b.id, mechanism="Binding reduces absorption.",
+        direction="decreases_absorption_of_b", severity=Severity.MODERATE,
+        evidence_grade=EvidenceGrade.B, span="Calcium carbonate may bind levothyroxine.",
+        source="openfda", source_text=SOURCE,
+    )
+    for label_id in range(5):
+        merge_triple(session, **common, source_url=f"https://example.test/label/{label_id}")
+
+    row = session.scalars(select(Interaction)).one()
+    assert row.confidence == 0.6
+    assert len(session.scalars(select(Evidence)).all()) == 1
+
+
+def test_genuinely_different_wording_still_corroborates(session):
+    """The content check must not suppress real second sources."""
+    a, b = seed(session)
+    common = dict(
+        entity_a_id=a.id, entity_b_id=b.id, mechanism="Binding reduces absorption.",
+        direction="decreases_absorption_of_b", severity=Severity.MODERATE,
+        evidence_grade=EvidenceGrade.B, source="openfda", source_text=SOURCE,
+    )
+    merge_triple(session, **common, span="Calcium carbonate may bind levothyroxine.",
+                 source_url="https://example.test/1")
+    merge_triple(session, **common, span="A minor effect was noted.",
+                 source_url="https://example.test/2")
+
+    row = session.scalars(select(Interaction)).one()
+    assert row.confidence > 0.6
+    assert len(session.scalars(select(Evidence)).all()) == 2

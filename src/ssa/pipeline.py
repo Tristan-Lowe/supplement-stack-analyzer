@@ -7,6 +7,7 @@ guessed. Nothing reaches the knowledge store without passing both gates.
 
 from __future__ import annotations
 
+import hashlib
 import logging
 
 import anthropic
@@ -14,10 +15,21 @@ from sqlalchemy.orm import Session
 
 from ssa.extract.gates import merge_triple
 from ssa.extract.llm import extract_triples
-from ssa.extract.verify import quarantine, verify_span
+from ssa.extract.verify import collapse_for_comparison, quarantine, verify_span
 from ssa.resolver import Resolved, resolve
 
 logger = logging.getLogger(__name__)
+
+
+def content_key(text: str) -> str:
+    """Stable fingerprint of a source section, ignoring whitespace differences.
+
+    Generic drugs carry the same FDA-mandated interaction wording under every
+    manufacturer's label id, so one drug can return five near-identical sections.
+    Extracting each of them costs five times as much for one document's worth of
+    information.
+    """
+    return hashlib.sha256(collapse_for_comparison(text).encode("utf-8")).hexdigest()
 
 
 def ingest_section(

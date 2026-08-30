@@ -28,7 +28,7 @@ _TYPOGRAPHIC = {
 }
 
 
-def _collapse(text: str) -> str:
+def collapse_for_comparison(text: str) -> str:
     """Normalize text for span comparison.
 
     Collapses whitespace runs, applies Unicode NFKC, and folds typographic
@@ -48,7 +48,7 @@ def span_appears_in(span: str, source_text: str) -> bool:
     The core check. Whitespace and typographic punctuation are normalized on both
     sides; nothing else is forgiven — paraphrase, substitution, and invention fail.
     """
-    return _collapse(span) in _collapse(source_text)
+    return collapse_for_comparison(span) in collapse_for_comparison(source_text)
 
 
 def verify_span(triple: CandidateTriple, source_text: str) -> bool:

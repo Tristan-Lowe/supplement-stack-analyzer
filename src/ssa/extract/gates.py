@@ -16,8 +16,11 @@ direction, or evidence grade, a ConflictRecord is written and the product shows
 the conflict with both citations.
 
 **Confidence measures independent corroboration.** Agreement raises confidence
-only when it comes from a source URL not already on record. Re-running the
-pipeline over the same document must not manufacture agreement with itself.
+only when it arrives with span text not already on record. A URL check alone is
+not enough: generic drugs carry the same FDA-mandated interaction wording across
+every manufacturer, so one sentence can reach us under five distinct label ids.
+Counting those as five independent sources would be self-corroboration wearing a
+disguise, in the number used to rank findings.
 """
 
 from __future__ import annotations
@@ -26,7 +29,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from ssa.extract.schema import VALID_DIRECTIONS
-from ssa.extract.verify import span_appears_in
+from ssa.extract.verify import collapse_for_comparison, span_appears_in
 from ssa.models import (
     REVIEW_REQUIRED_AT_OR_ABOVE,
     SEVERITY_RANK,
@@ -63,12 +66,21 @@ def _initial_status(severity: Severity) -> InteractionStatus:
     return InteractionStatus.PUBLISHED
 
 
-def _has_evidence_from(session: Session, interaction_id: int, source_url: str) -> bool:
-    stmt = select(Evidence).where(
-        Evidence.interaction_id == interaction_id,
-        Evidence.source_url == source_url,
-    )
-    return session.scalars(stmt).first() is not None
+def _is_new_evidence(session: Session, interaction_id: int, source_url: str, span: str) -> bool:
+    """True only when BOTH the source and the span content are unseen for this pair.
+
+    Identical prose reaching us from two URLs is copied text, not two independent
+    observations — the case that matters in practice, since generic labels
+    replicate the same wording across manufacturers.
+    """
+    existing = session.scalars(
+        select(Evidence).where(Evidence.interaction_id == interaction_id)
+    ).all()
+    normalized = collapse_for_comparison(span)
+    for row in existing:
+        if row.source_url == source_url or collapse_for_comparison(row.span) == normalized:
+            return False
+    return True
 
 
 def merge_triple(
@@ -146,7 +158,7 @@ def merge_triple(
     # Corroboration only counts from a source we have not already recorded.
     # Without this, re-ingesting one document walks confidence 0.6 -> 0.75 -> 0.90,
     # presenting self-agreement as agreement between sources.
-    is_new_source = not _has_evidence_from(session, interaction.id, source_url)
+    is_new_source = _is_new_evidence(session, interaction.id, source_url, span)
     agreed = True
 
     if interaction.severity is not severity:
