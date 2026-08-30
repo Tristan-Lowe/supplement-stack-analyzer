@@ -13,6 +13,7 @@ import logging
 import anthropic
 from sqlalchemy.orm import Session
 
+from ssa.bootstrap import bootstrap_entity
 from ssa.extract.gates import merge_triple
 from ssa.extract.llm import extract_triples
 from ssa.extract.verify import collapse_for_comparison, quarantine, verify_span
@@ -40,6 +41,7 @@ def ingest_section(
     source_url: str,
     model: str = "claude-opus-5",
     pipeline_run_id: int | None = None,
+    allow_bootstrap: bool = True,
 ) -> dict[str, int]:
     """Extract, verify, resolve, and merge every triple from one source section.
 
@@ -47,7 +49,27 @@ def ingest_section(
     measurable across runs.
     """
     result = extract_triples(client, source_text, model=model)
-    stats = {"extracted": len(result.triples), "stored": 0, "quarantined": 0}
+    stats = {
+        "extracted": len(result.triples),
+        "stored": 0,
+        "quarantined": 0,
+        "bootstrapped": 0,
+    }
+
+    def _resolve_or_bootstrap(name: str):
+        """Resolve a compound, falling back to RxNorm to create it if unknown.
+
+        Without this the graph cannot bootstrap: a fresh database recognises
+        nothing, so every triple quarantines — including ones naming the very
+        drug whose label is being read.
+        """
+        resolution = resolve(session, name)
+        if isinstance(resolution, Resolved) or not allow_bootstrap:
+            return resolution
+        if bootstrap_entity(session, name) is None:
+            return resolution
+        stats["bootstrapped"] += 1
+        return resolve(session, name)
 
     for triple in result.triples:
         if not verify_span(triple, source_text):
@@ -55,8 +77,8 @@ def ingest_section(
             stats["quarantined"] += 1
             continue
 
-        resolution_a = resolve(session, triple.compound_a)
-        resolution_b = resolve(session, triple.compound_b)
+        resolution_a = _resolve_or_bootstrap(triple.compound_a)
+        resolution_b = _resolve_or_bootstrap(triple.compound_b)
         if not isinstance(resolution_a, Resolved) or not isinstance(resolution_b, Resolved):
             quarantine(session, triple, reason="unresolved_compound", detail=source_url)
             stats["quarantined"] += 1
@@ -79,10 +101,11 @@ def ingest_section(
         stats["stored"] += 1
 
     logger.info(
-        "Ingested %s: %d extracted, %d stored, %d quarantined",
+        "Ingested %s: %d extracted, %d stored, %d quarantined, %d bootstrapped",
         source_url,
         stats["extracted"],
         stats["stored"],
         stats["quarantined"],
+        stats["bootstrapped"],
     )
     return stats

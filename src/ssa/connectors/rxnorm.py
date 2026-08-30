@@ -70,3 +70,40 @@ def lookup_drug(name: str) -> DrugConcept | None:
         logger.warning("RxNorm property body unusable for %s: %s", rxcui, exc)
         preferred = name
     return DrugConcept(rxcui=rxcui, name=preferred)
+
+
+def lookup_ingredient(name: str) -> DrugConcept | None:
+    """Resolve a name to its RxNorm *ingredient*, collapsing dose forms and brands.
+
+    This is the function the registry should use, not lookup_drug. RxNorm assigns
+    distinct RxCUIs to "levothyroxine" (10582), "Synthroid" (224920), and
+    "levothyroxine sodium Oral Tablet" (2649207). Creating an entity per RxCUI
+    would fragment one drug into three, and interactions would scatter across
+    them. Walking to the ingredient collapses all three to 10582.
+
+    Returns None when the name is unknown or the service is unavailable — callers
+    must treat that as "not identified", never as "no interactions".
+    """
+    concept = lookup_drug(name)
+    if concept is None:
+        return None
+
+    try:
+        response = requests.get(
+            f"{RXNORM_BASE}/rxcui/{concept.rxcui}/related.json",
+            params={"tty": "IN"},
+            timeout=TIMEOUT_SECONDS,
+        )
+        response.raise_for_status()
+        groups = response.json().get("relatedGroup", {}).get("conceptGroup", []) or []
+    except (requests.RequestException, ValueError, AttributeError) as exc:
+        logger.warning("RxNorm ingredient lookup failed for %s: %s", concept.rxcui, exc)
+        return concept
+
+    for group in groups:
+        for prop in group.get("conceptProperties") or []:
+            return DrugConcept(rxcui=prop["rxcui"], name=prop["name"])
+
+    # Already an ingredient, or no ingredient relationship exists.
+    return concept
+

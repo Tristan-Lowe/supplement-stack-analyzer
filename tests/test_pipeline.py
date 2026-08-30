@@ -66,7 +66,9 @@ def test_unresolvable_compound_is_quarantined(session):
     client = MagicMock()
     client.messages.parse.return_value = MagicMock(parsed_output=make_result(SOURCE))
 
-    stats = ingest_section(session, client, SOURCE, "openfda", "https://example.test/1")
+    stats = ingest_section(
+        session, client, SOURCE, "openfda", "https://example.test/1", allow_bootstrap=False
+    )
 
     assert stats["stored"] == 0
     assert stats["quarantined"] == 1
