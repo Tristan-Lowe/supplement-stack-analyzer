@@ -40,6 +40,7 @@ def ingest_section(
     source: str,
     source_url: str,
     model: str = "claude-opus-5",
+    effort: str | None = "low",
     pipeline_run_id: int | None = None,
     allow_bootstrap: bool = True,
 ) -> dict[str, int]:
@@ -48,7 +49,7 @@ def ingest_section(
     Returns counts of stored and quarantined triples so pipeline quality stays
     measurable across runs.
     """
-    result = extract_triples(client, source_text, model=model)
+    result = extract_triples(client, source_text, model=model, effort=effort)
     stats = {
         "extracted": len(result.triples),
         "stored": 0,

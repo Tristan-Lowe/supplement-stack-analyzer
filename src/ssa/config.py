@@ -8,4 +8,4 @@ class Settings(BaseSettings):
 
     database_url: str
     anthropic_api_key: str
-    extraction_model: str = "claude-opus-5"
+    extraction_model: str = "claude-haiku-4-5"

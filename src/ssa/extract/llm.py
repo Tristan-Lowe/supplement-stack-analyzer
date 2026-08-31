@@ -17,6 +17,24 @@ logger = logging.getLogger(__name__)
 
 MAX_TOKENS = 16000
 
+# Not every model accepts the same request shape, and sending the wrong one is a
+# 400, not a graceful degradation.
+#   - adaptive thinking and output_config.effort arrived with the 4.6 generation.
+#     Haiku 4.5 rejects both; it predates them.
+#   - effort is the main cost dial where it exists, because thinking tokens are
+#     billed as output and output is ~93% of extraction cost.
+MODELS_WITH_ADAPTIVE_THINKING: frozenset[str] = frozenset(
+    {
+        "claude-opus-5",
+        "claude-opus-4-8",
+        "claude-opus-4-7",
+        "claude-opus-4-6",
+        "claude-sonnet-5",
+        "claude-sonnet-4-6",
+        "claude-fable-5",
+    }
+)
+
 SYSTEM_PROMPT = """You extract drug and dietary-supplement interaction claims from \
 source documents into structured records.
 
@@ -51,10 +69,28 @@ def make_client(settings: Settings | None = None) -> anthropic.Anthropic:
     return anthropic.Anthropic(api_key=resolved.anthropic_api_key)
 
 
+def build_request_kwargs(model: str, effort: str | None) -> dict:
+    """Assemble the model-specific half of the request.
+
+    Extraction is a read-and-transcribe task, not a reasoning task, so low effort
+    is a reasonable default where the model supports it — and since thinking
+    tokens bill as output, and output dominates the cost, it is also the main
+    cost dial.
+    """
+    if model not in MODELS_WITH_ADAPTIVE_THINKING:
+        return {}
+
+    kwargs: dict = {"thinking": {"type": "adaptive"}}
+    if effort:
+        kwargs["output_config"] = {"effort": effort}
+    return kwargs
+
+
 def extract_triples(
     client: anthropic.Anthropic,
     source_text: str,
     model: str = "claude-opus-5",
+    effort: str | None = "low",
 ) -> ExtractionResult:
     """Extract candidate triples from one chunk of source text.
 
@@ -65,9 +101,9 @@ def extract_triples(
         model=model,
         max_tokens=MAX_TOKENS,
         system=SYSTEM_PROMPT,
-        thinking={"type": "adaptive"},
         messages=[{"role": "user", "content": build_prompt(source_text)}],
         output_format=ExtractionResult,
+        **build_request_kwargs(model, effort),
     )
 
     parsed = response.parsed_output
