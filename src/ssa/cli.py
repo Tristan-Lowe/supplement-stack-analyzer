@@ -84,7 +84,7 @@ def cmd_ingest(args: argparse.Namespace) -> int:
 
         for section in unique:
             stats = ingest_section(
-                session,
+                lambda: make_session_factory(make_engine())(),
                 client,
                 section.text,
                 source="openfda",

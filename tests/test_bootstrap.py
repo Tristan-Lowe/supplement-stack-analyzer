@@ -90,7 +90,7 @@ def test_pipeline_bootstraps_then_stores(session):
         "ssa.bootstrap.lookup_ingredient",
         return_value=DrugConcept(rxcui="10582", name="levothyroxine"),
     ):
-        stats = ingest_section(session, client, source, "openfda", "https://example.test/1")
+        stats = ingest_section(lambda: session, client, source, "openfda", "https://example.test/1")
 
     assert stats["stored"] == 1
     assert stats["quarantined"] == 0

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import logging
+from collections.abc import Callable
 
 import anthropic
 from sqlalchemy.exc import SQLAlchemyError
@@ -35,7 +36,7 @@ def content_key(text: str) -> str:
 
 
 def ingest_section(
-    session: Session,
+    session_factory: Callable[[], Session],
     client: anthropic.Anthropic,
     source_text: str,
     source: str,
@@ -47,10 +48,40 @@ def ingest_section(
 ) -> dict[str, int]:
     """Extract, verify, resolve, and merge every triple from one source section.
 
+    Takes a session *factory*, not a session, and this is load-bearing rather than
+    stylistic. Extraction takes minutes; a session opened before it would hold an
+    idle connection with a transaction attached for that whole time, which is
+    exactly what serverless Postgres reclaims. pool_pre_ping cannot help — it
+    validates a connection at checkout, not one already being held. So the model
+    call happens with no connection held, and the database session is opened
+    afterwards for the fast write phase.
+
     Returns counts of stored and quarantined triples so pipeline quality stays
     measurable across runs.
     """
+    # Slow phase: no database connection is held here.
     result = extract_triples(client, source_text, model=model, effort=effort)
+
+    # Fast phase: open the session only now.
+    session = session_factory()
+    try:
+        return _store_triples(
+            session, result, source_text, source, source_url, pipeline_run_id, allow_bootstrap
+        )
+    finally:
+        session.close()
+
+
+def _store_triples(
+    session: Session,
+    result,
+    source_text: str,
+    source: str,
+    source_url: str,
+    pipeline_run_id: int | None,
+    allow_bootstrap: bool,
+) -> dict[str, int]:
+    """Resolve, verify and merge an already-extracted result. Fast, DB-bound."""
     stats = {
         "extracted": len(result.triples),
         "stored": 0,
