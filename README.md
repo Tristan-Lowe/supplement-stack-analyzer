@@ -100,9 +100,12 @@ assessed on the part that can be. If the measurable portion alone exceeds the ce
 that's a certain breach regardless of the rest. Otherwise the user is told the check
 was incomplete, because silence reads as an all-clear.
 
-**Confidence measures corroboration, not repetition.** Evidence is deduplicated by
-source URL, so re-ingesting the same document can't walk a claim's confidence upward
-by agreeing with itself.
+**Confidence measures corroboration, not repetition.** Corroboration requires new
+span *content*, not merely a new URL. Deduplicating by URL alone is not enough:
+generic drugs carry the same FDA-mandated wording under every manufacturer's label
+id, so one sentence reaches the pipeline under five distinct URLs. Counting those
+as five independent sources would be self-corroboration in disguise — in the very
+number used to rank findings by trustworthiness.
 
 **Ambiguity is surfaced, never guessed.** `"Vitamin B"` doesn't resolve to anything and
 doesn't pretend to. Two entities sharing an alias return `Ambiguous` with both
