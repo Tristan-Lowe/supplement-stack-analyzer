@@ -116,28 +116,53 @@ still accrues so the call can be revisited deliberately.
 
 ---
 
-## Status — honest version
+## Status — measured, not claimed
 
-**The core is built and runs. The knowledge graph is empty.**
+**The system runs end to end on real data.** One FDA drug ingested (levothyroxine,
+4 label sections): **54 entities, 38 interactions, 60 evidence rows** with live
+citations. 137 tests.
 
-Every capability below is proven by 112 tests against seeded fixtures. **No real
-ingestion has run yet**, so the system has never been tested against actual FDA prose.
-Expect the first run to produce quarantine noise; the quarantine reason distribution is
-the signal for tuning the extraction prompt.
+### What the first real ingestion measured
 
-| Built | Not yet |
-|---|---|
-| Entity registry, 4-stage resolver, resolution eval harness | Real ingestion — the graph has no interactions in it |
-| 4 source connectors, all hardened to degrade rather than crash | LLM parser for genuinely messy input |
-| Extraction pipeline: schema → Claude → span verification → gates | Branded product expansion in the request path |
-| 4 analysis checks + ranking orchestrator | Interaction gold set and the recall metric |
-| Alembic migrations, CLI | Web UI, deployment |
+| Metric | Result | What it means |
+|---|---|---|
+| Span verification | **172 / 173 (99.4%)** | The model quotes source text almost perfectly |
+| Conflict records | **92** across 38 interactions | The model contradicts *itself* on judgment fields |
+| — by field | evidence grade 49, severity 22, direction 21 | Evidence grade is the least stable judgment |
+| Held for human review | 29 of 38 | Everything moderate-or-above, by design |
 
-There is deliberately **no accuracy number here**. The recall metric that would justify
-one requires a 300–500 pair hand-labeled gold set that does not exist yet. Publishing a
-figure derived from my own fixtures would be meaningless.
+Those first two rows are the point. Reading four sections of one drug's label, the
+model transcribes near-perfectly and disagrees with itself constantly about
+severity and evidence strength. **That is the empirical case for the whole
+architecture**: trust the model for transcription, never for judgment. Detection
+is a database lookup; every consequential claim goes to a person.
 
----
+### Extraction model, chosen by measurement
+
+Measured on one real FDA section, all with 100% span verification:
+
+| Model | Triples | Cost | 200-drug build-out |
+|---|---|---|---|
+| Opus 5 | 49 | $0.27 | ~$190 |
+| Sonnet 5 (effort low) | 31 | $0.061 | ~$43 |
+| **Haiku 4.5** ← chosen | **51** | **$0.039** | **~$27** |
+
+Haiku found more interactions than Opus at a seventh of the cost. That was the
+opposite of the prediction; it is why the choice was measured rather than argued.
+
+Extraction is a one-time capital cost. Once a document is processed the graph
+serves unlimited users at essentially zero marginal cost, because request time is
+a Postgres lookup with no model in it.
+
+### Not built yet
+
+Recall against a labelled gold set — the metric that would justify a coverage
+claim — needs a 300–500 pair hand-labelled set that does not exist. **No recall
+number is claimed here, and none should be inferred.** Also outstanding: branded
+product expansion in the request path, an LLM parser for messy input, drug-class
+and food entities (16 label terms remain unresolvable because they name classes
+like "proton pump inhibitors" or foods like "soybean flour"), a web UI, and any
+deployment.
 
 ## Setup
 
@@ -186,7 +211,7 @@ and does not replace a pharmacist or physician.
 pytest -v && ruff check src tests evals
 ```
 
-112 tests. No test makes a network call or an API call — HTTP is mocked with
+137 tests. No test makes a network call or an API call — HTTP is mocked with
 `responses`, the Anthropic client with `MagicMock`. Tests run against in-memory
 SQLite; production is Postgres, and all column types are kept portable.
 
