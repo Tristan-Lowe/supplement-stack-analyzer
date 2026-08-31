@@ -11,10 +11,11 @@ import hashlib
 import logging
 
 import anthropic
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from ssa.bootstrap import bootstrap_entity
-from ssa.extract.gates import merge_triple
+from ssa.extract.gates import InvalidDirectionError, UnverifiedSpanError, merge_triple
 from ssa.extract.llm import extract_triples
 from ssa.extract.verify import collapse_for_comparison, quarantine, verify_span
 from ssa.resolver import Resolved, resolve
@@ -85,20 +86,44 @@ def ingest_section(
             stats["quarantined"] += 1
             continue
 
-        merge_triple(
-            session,
-            entity_a_id=resolution_a.entity_id,
-            entity_b_id=resolution_b.entity_id,
-            mechanism=triple.mechanism,
-            direction=triple.direction,
-            severity=triple.severity,
-            evidence_grade=triple.evidence_grade,
-            span=triple.span,
-            source=source,
-            source_url=source_url,
-            source_text=source_text,
-            pipeline_run_id=pipeline_run_id,
-        )
+        # One bad triple must not discard the rest of a paid-for extraction run.
+        # A failed flush leaves the Session unusable, so every later query in the
+        # run raises PendingRollbackError and the whole section is lost — the most
+        # expensive possible way to fail. Roll back, record why, and carry on.
+        try:
+            merge_triple(
+                session,
+                entity_a_id=resolution_a.entity_id,
+                entity_b_id=resolution_b.entity_id,
+                mechanism=triple.mechanism,
+                direction=triple.direction,
+                severity=triple.severity,
+                evidence_grade=triple.evidence_grade,
+                span=triple.span,
+                source=source,
+                source_url=source_url,
+                source_text=source_text,
+                pipeline_run_id=pipeline_run_id,
+            )
+        except (UnverifiedSpanError, InvalidDirectionError) as exc:
+            session.rollback()
+            quarantine(session, triple, reason="rejected_by_gate", detail=f"{source_url}: {exc}")
+            stats["quarantined"] += 1
+            continue
+        except SQLAlchemyError as exc:
+            session.rollback()
+            quarantine(
+                session, triple, reason="database_error", detail=f"{source_url}: {exc}"[:2000]
+            )
+            stats["quarantined"] += 1
+            logger.warning(
+                "merge failed for %s + %s: %s",
+                triple.compound_a,
+                triple.compound_b,
+                exc,
+            )
+            continue
+
         stats["stored"] += 1
 
     logger.info(
