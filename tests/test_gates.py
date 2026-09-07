@@ -266,3 +266,34 @@ def test_genuinely_different_wording_still_corroborates(session):
     row = session.scalars(select(Interaction)).one()
     assert row.confidence > 0.6
     assert len(session.scalars(select(Evidence)).all()) == 2
+
+
+def test_approved_interaction_is_not_silently_unpublished(session):
+    """A later, more severe source must not withdraw a reviewer's approval.
+
+    Observed in production: an approved Calcium + Levothyroxine interaction was
+    reset to PENDING_REVIEW by a later section reporting MAJOR, vanishing from
+    users with no notice.
+    """
+    a, b = seed(session)
+    interaction = merge_triple(
+        session, entity_a_id=a.id, entity_b_id=b.id, mechanism="m",
+        direction="unclear", severity=Severity.MODERATE, evidence_grade=EvidenceGrade.B,
+        span="span one", source="openfda", source_url="https://example.test/1",
+        source_text=SOURCE,
+    )
+    interaction.status = InteractionStatus.PUBLISHED
+    session.commit()
+
+    merge_triple(
+        session, entity_a_id=a.id, entity_b_id=b.id, mechanism="m",
+        direction="unclear", severity=Severity.MAJOR, evidence_grade=EvidenceGrade.B,
+        span="span two", source="pubmed", source_url="https://example.test/2",
+        source_text=SOURCE,
+    )
+
+    row = session.scalars(select(Interaction)).one()
+    assert row.status is InteractionStatus.PUBLISHED
+    assert row.severity is Severity.MAJOR          # escalation still recorded
+    conflicts = session.scalars(select(ConflictRecord)).all()
+    assert any(c.field == "severity" for c in conflicts)  # reviewer can see it

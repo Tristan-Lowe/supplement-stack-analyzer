@@ -174,7 +174,13 @@ def merge_triple(
         )
         if SEVERITY_RANK[severity] > SEVERITY_RANK[interaction.severity]:
             interaction.severity = severity
-            if interaction.status is not InteractionStatus.REJECTED:
+            # Ingestion never overwrites a status a person set. A row that is
+            # already PUBLISHED or REJECTED has been decided; silently flipping an
+            # approved interaction back to PENDING_REVIEW would withdraw it from
+            # users with no notice, which is the same failure as resurrecting a
+            # rejected one. The escalation is preserved in the ConflictRecord above
+            # so a reviewer can act on it deliberately.
+            if interaction.status is InteractionStatus.PENDING_REVIEW:
                 interaction.status = _initial_status(severity)
 
     if interaction.direction != direction:
