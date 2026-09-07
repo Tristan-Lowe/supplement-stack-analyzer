@@ -16,15 +16,25 @@ path, which is deliberately offline and deterministic.
 
 from __future__ import annotations
 
+import csv
 import logging
 import re
+from functools import lru_cache
+from pathlib import Path
 
 from rapidfuzz import fuzz
 from sqlalchemy.orm import Session
 
 from ssa.connectors.rxnorm import lookup_ingredient
 from ssa.models import Entity, EntityKind
+from ssa.normalize import normalize_name
 from ssa.registry import add_alias, get_or_create_entity
+
+SUPPLEMENT_KINDS_CSV = "data/supplement_kinds.csv"
+
+# RxNorm appends these to botanical and preparation names. Stripping them lets
+# "Ginkgo Biloba Extract" match the curated entry "ginkgo biloba".
+_KIND_SUFFIXES = ("extract", "preparation", "powder", "oil")
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +55,57 @@ NAME_MATCH_THRESHOLD = 80
 _EXAMPLE_MARKER = re.compile(r"^\s*(e\.?g\.?|such as|including|eg)\b", re.IGNORECASE)
 
 _PARENTHETICAL = re.compile(r"\(([^)]*)\)")
+
+
+@lru_cache(maxsize=1)
+def _kind_table(path: str = SUPPLEMENT_KINDS_CSV) -> dict[str, EntityKind]:
+    """Curated normalized-name to EntityKind map, loaded once."""
+    table: dict[str, EntityKind] = {}
+    csv_path = Path(path)
+    if not csv_path.exists():
+        return table
+    for row in csv.DictReader(csv_path.read_text(encoding="utf-8").splitlines()):
+        table[row["normalized_name"]] = EntityKind[row["kind"]]
+    return table
+
+
+def classify_kind(name: str) -> EntityKind:
+    """Decide whether a bootstrapped compound is a nutrient, herbal, or drug.
+
+    Matching is on whole normalized names, never substrings. Substring matching on
+    drug names is actively dangerous here — "buspirone" contains "iron", and
+    "niacin" appears inside nothing useful but plenty of names contain "k".
+
+    Defaults to DRUG, because miscategorising a supplement is cosmetic while
+    miscategorising a drug as a supplement could imply it is benign.
+    """
+    normalized = normalize_name(name)
+    table = _kind_table()
+
+    if normalized in table:
+        return table[normalized]
+
+    tokens = normalized.split(" ")
+    while tokens and tokens[-1] in _KIND_SUFFIXES:
+        tokens.pop()
+        stripped = " ".join(tokens)
+        if stripped in table:
+            return table[stripped]
+
+    # "vitamin <x>" is unambiguous as a whole-token pattern.
+    if tokens and tokens[0] == "vitamin":
+        return EntityKind.NUTRIENT
+
+    return EntityKind.DRUG
+
+
+def _title_case(name: str) -> str:
+    """Title-case without mangling apostrophes.
+
+    str.title() turns "st. john's wort" into "St. John'S Wort" — it capitalises
+    after any non-letter, apostrophes included.
+    """
+    return re.sub(r"(^|\s)(\w)", lambda m: m.group(1) + m.group(2).upper(), name)
 
 
 def name_variants(raw_name: str) -> list[str]:
@@ -96,9 +157,9 @@ def bootstrap_entity(session: Session, raw_name: str) -> Entity | None:
             )
             continue
 
-        canonical = concept.name.strip().title()
+        canonical = _title_case(concept.name.strip())
         entity = get_or_create_entity(
-            session, EntityKind.DRUG, canonical, rxcui=concept.rxcui
+            session, classify_kind(canonical), canonical, rxcui=concept.rxcui
         )
         add_alias(session, entity, raw_name, source="rxnorm")
         session.commit()

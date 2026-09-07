@@ -6,12 +6,13 @@ import argparse
 
 from ssa.analyze.engine import analyze_stack
 from ssa.config import Settings
-from ssa.connectors.ods import load_upper_limits
+from ssa.connectors.ods import load_nutrient_synonyms, load_upper_limits
 from ssa.connectors.openfda import fetch_interaction_sections
 from ssa.db import make_engine, make_session_factory
 from ssa.extract.llm import make_client
-from ssa.models import Base, PipelineRun, utcnow
+from ssa.models import Base, Entity, PipelineRun, utcnow
 from ssa.pipeline import content_key, ingest_section
+from ssa.registry import find_nutrient_duplicates, merge_entities, reclassify_entities
 from ssa.review import approve, list_pending, reject
 
 
@@ -36,6 +37,8 @@ def cmd_seed(args: argparse.Namespace) -> int:
     try:
         created = load_upper_limits(session, args.csv)
         print(f"Loaded {created} new upper limits.")
+        aliases = load_nutrient_synonyms(session, args.synonyms)
+        print(f"Loaded {aliases} new nutrient synonyms.")
     finally:
         session.close()
     return 0
@@ -137,6 +140,45 @@ def cmd_analyze(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_dedupe(args: argparse.Namespace) -> int:
+    """Fold bootstrap-created duplicates back into their seeded nutrient.
+
+    Ingestion can meet a chemical name before the registry knows it is a synonym,
+    and create a second entity for one substance. Only one of the pair carries the
+    UpperLimit row, so the split silently disables a toxicity check.
+    """
+    session = _session()
+    try:
+        duplicates = find_nutrient_duplicates(session)
+        if duplicates:
+            print(f"{len(duplicates)} duplicate(s) found:")
+            for dup_id, canon_id, name in duplicates:
+                canonical = session.get(Entity, canon_id)
+                print(f"  [{dup_id}] {name} -> [{canon_id}] {canonical.canonical_name}")
+        else:
+            print("No duplicates found.")
+
+        if not args.apply:
+            print()
+            print("Dry run. Re-run with --apply to merge and reclassify.")
+            return 0
+
+        for dup_id, canon_id, name in duplicates:
+            moved = merge_entities(session, dup_id, canon_id)
+            print(f"  merged {name}: {moved}")
+        if duplicates:
+            print(f"Merged {len(duplicates)} duplicate(s).")
+
+        changed = reclassify_entities(session)
+        if changed:
+            print(f"\nReclassified {len(changed)} entity kind(s):")
+            for name, old_kind, new_kind in changed:
+                print(f"  {name}: {old_kind} -> {new_kind}")
+        return 0
+    finally:
+        session.close()
+
+
 def cmd_review(args: argparse.Namespace) -> int:
     session = _session()
     try:
@@ -182,11 +224,16 @@ def main() -> int:
 
     seed = subparsers.add_parser("seed", help="Load upper intake limits from CSV")
     seed.add_argument("--csv", default="data/upper_limits.csv")
+    seed.add_argument("--synonyms", default="data/nutrient_synonyms.csv")
     seed.set_defaults(func=cmd_seed)
 
     ingest = subparsers.add_parser("ingest", help="Ingest openFDA label sections for a drug")
     ingest.add_argument("drug")
     ingest.set_defaults(func=cmd_ingest)
+
+    dedupe = subparsers.add_parser("dedupe", help="Merge duplicate entities into seeded nutrients")
+    dedupe.add_argument("--apply", action="store_true", help="actually merge (default: dry run)")
+    dedupe.set_defaults(func=cmd_dedupe)
 
     review = subparsers.add_parser("review", help="Review interactions held for approval")
     review.add_argument("action", choices=["list", "approve", "reject"])
