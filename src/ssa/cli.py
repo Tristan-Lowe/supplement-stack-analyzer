@@ -48,7 +48,11 @@ def cmd_ingest(args: argparse.Namespace) -> int:
     makes releases diffable.
     """
     settings = Settings()
-    session = _session()
+    # One engine, one pool, reused for every section. Building an engine per call
+    # would spin up a fresh connection pool each time for no benefit.
+    engine = make_engine()
+    session_factory = make_session_factory(engine)
+    session = session_factory()
     client = make_client(settings)
     totals = {"extracted": 0, "stored": 0, "quarantined": 0}
 
@@ -84,7 +88,7 @@ def cmd_ingest(args: argparse.Namespace) -> int:
 
         for section in unique:
             stats = ingest_section(
-                lambda: make_session_factory(make_engine())(),
+                session_factory,
                 client,
                 section.text,
                 source="openfda",
