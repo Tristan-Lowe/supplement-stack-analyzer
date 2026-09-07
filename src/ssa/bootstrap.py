@@ -103,9 +103,11 @@ def _title_case(name: str) -> str:
     """Title-case without mangling apostrophes.
 
     str.title() turns "st. john's wort" into "St. John'S Wort" — it capitalises
-    after any non-letter, apostrophes included.
+    after any non-letter, apostrophes included. Lowercasing first also repairs a
+    name that already carries that damage.
     """
-    return re.sub(r"(^|\s)(\w)", lambda m: m.group(1) + m.group(2).upper(), name)
+    lowered = name.lower()
+    return re.sub(r"(^|\s)(\w)", lambda m: m.group(1) + m.group(2).upper(), lowered)
 
 
 def name_variants(raw_name: str) -> list[str]:
