@@ -64,8 +64,32 @@ class Unknown:
 Resolution = Resolved | Ambiguous | Unknown
 
 
-def resolve(session: Session, raw_name: str) -> Resolution:
-    """Resolve raw text to an entity through four ordered stages."""
+def build_alias_index(session: Session) -> list[tuple[str, int]]:
+    """Snapshot every (normalized_alias, entity_id) pair for batch resolution.
+
+    The fuzzy stage otherwise re-reads the whole alias table on every call. That
+    is invisible for one lookup and severe for many: resolving a few hundred names
+    meant a few hundred full table scans, slow enough that a serverless database
+    reclaimed the connection mid-run.
+
+    Callers that resolve many names against an unchanging registry should build
+    this once and pass it in. Callers that *mutate* the registry between lookups —
+    ingestion, which bootstraps new entities — must not, or they will match against
+    a stale snapshot.
+    """
+    return all_normalized_aliases(session)
+
+
+def resolve(
+    session: Session,
+    raw_name: str,
+    alias_index: list[tuple[str, int]] | None = None,
+) -> Resolution:
+    """Resolve raw text to an entity through four ordered stages.
+
+    Pass `alias_index` from build_alias_index() when resolving many names against
+    a registry that is not changing.
+    """
     normalized = normalize_name(raw_name)
 
     if normalized in VAGUE_TERMS:
@@ -88,7 +112,7 @@ def resolve(session: Session, raw_name: str) -> Resolution:
             return Ambiguous(raw=raw_name, candidate_ids=[e.id for e in matches])
 
     # Stage 3 — fuzzy match against every known alias.
-    candidates = all_normalized_aliases(session)
+    candidates = all_normalized_aliases(session) if alias_index is None else alias_index
     if not candidates:
         return Unknown(raw=raw_name)
 

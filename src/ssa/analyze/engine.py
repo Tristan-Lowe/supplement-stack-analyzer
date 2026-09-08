@@ -17,7 +17,7 @@ from ssa.analyze.pairwise import check_pairwise
 from ssa.analyze.redundancy import ResolvedDose, check_redundancy
 from ssa.analyze.timing import check_timing
 from ssa.models import Severity
-from ssa.resolver import Ambiguous, Resolved, Unknown, resolve
+from ssa.resolver import Ambiguous, Resolved, Unknown, build_alias_index, resolve
 from ssa.stack import parse_stack_text
 
 DISCLAIMER = (
@@ -84,8 +84,13 @@ def analyze_stack(session: Session, stack_text: str) -> AnalysisReport:
     entity_ids: list[int] = []
     unresolved: list[str] = []
 
+    # One snapshot for the whole stack. The registry does not change during
+    # analysis, and re-reading the alias table per item is the difference between
+    # one query and one per compound.
+    alias_index = build_alias_index(session)
+
     for item in items:
-        result = resolve(session, item.raw)
+        result = resolve(session, item.raw, alias_index=alias_index)
         if isinstance(result, Resolved):
             entity_ids.append(result.entity_id)
             doses.append(
