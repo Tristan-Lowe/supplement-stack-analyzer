@@ -19,3 +19,121 @@
 {"raw": "multivitamin", "expected": null, "note": "too vague - must not resolve"}
 {"raw": "manganese", "expected": "Manganese", "note": "must not fuzzy-match magnesium"}
 {"raw": "flibbertigibbet extract", "expected": null, "note": "nonexistent compound"}
+{"raw": "magnesium", "expected": "Magnesium", "note": "plain name"}
+{"raw": "mag citrate", "expected": "Magnesium", "note": "abbreviation + salt"}
+{"raw": "Vitamin D 2000 IU", "expected": "Vitamin D3", "note": "unqualified vitamin D; the UL covers all forms"}
+{"raw": "vitamin d3 + k2", "expected": null, "note": "combination entry must not collapse to one nutrient"}
+{"raw": "zinc 50mg", "expected": "Zinc", "note": "plain with dose"}
+{"raw": "ferrous sulfate 325mg", "expected": "Iron", "note": "common iron salt"}
+{"raw": "iron bisglycinate", "expected": "Iron", "note": "chelated iron"}
+{"raw": "calcium carbonate 600mg", "expected": "Calcium", "note": "antacid/supplement salt"}
+{"raw": "folic acid", "expected": "Folate", "note": "synthetic form"}
+{"raw": "methylfolate", "expected": "Folate", "note": "activated form"}
+{"raw": "niacinamide", "expected": "Niacin", "note": "amide form"}
+{"raw": "Vitamin B6", "expected": "Vitamin B6", "note": "exact"}
+{"raw": "P5P", "expected": "Vitamin B6", "note": "pyridoxal-5-phosphate abbreviation"}
+{"raw": "vitamin b5", "expected": null, "note": "numbered vitamin not in registry must not fuzzy-match B6"}
+{"raw": "Vitamin B12 1000mcg", "expected": "Vitamin B12", "note": "B12 with dose"}
+{"raw": "methylcobalamin", "expected": "Vitamin B12", "note": "B12 form"}
+{"raw": "cyanocobalamin", "expected": "Vitamin B12", "note": "B12 form"}
+{"raw": "vitamin c 1000mg", "expected": "Vitamin C", "note": "vitamin C with dose"}
+{"raw": "ascorbic acid", "expected": "Vitamin C", "note": "chemical name"}
+{"raw": "vitamin e 400 iu", "expected": "Vitamin E", "note": "vitamin E with dose"}
+{"raw": "retinyl palmitate", "expected": "Vitamin A", "note": "preformed vitamin A ester"}
+{"raw": "beta carotene", "expected": null, "note": "provitamin A; mapping to Vitamin A would wrongly fire the preformed-A UL"}
+{"raw": "vitamin k2", "expected": "Vitamin K", "note": "K2 form"}
+{"raw": "menaquinone", "expected": "Vitamin K", "note": "K2 chemical name"}
+{"raw": "phytonadione", "expected": "Vitamin K", "note": "K1 chemical name"}
+{"raw": "biotin 10000mcg", "expected": "Biotin", "note": "biotin with dose"}
+{"raw": "selenomethionine", "expected": "Selenium", "note": "organic selenium"}
+{"raw": "potassium iodide", "expected": "Iodine", "note": "iodine salt"}
+{"raw": "kelp", "expected": null, "note": "iodine source, not iodine itself"}
+{"raw": "chromium picolinate", "expected": "Chromium", "note": "chromium salt"}
+{"raw": "choline bitartrate", "expected": "Choline", "note": "choline salt"}
+{"raw": "potassium 99mg", "expected": "Potassium", "note": "OTC potassium"}
+{"raw": "creatine monohydrate", "expected": "Creatine", "note": "salt form"}
+{"raw": "creatine", "expected": "Creatine", "note": "plain"}
+{"raw": "n-acetyl cysteine", "expected": "N-Acetylcysteine", "note": "spelled out with hyphen"}
+{"raw": "N-acetyl-L-cysteine", "expected": "N-Acetylcysteine", "note": "full chemical name"}
+{"raw": "omega 3 fish oil 1000mg", "expected": "Omega-3 Fatty Acids", "note": "typical label wording"}
+{"raw": "krill oil", "expected": "Omega-3 Fatty Acids", "note": "omega-3 source"}
+{"raw": "EPA/DHA", "expected": null, "note": "two components on one line; must not collapse"}
+{"raw": "omega 6", "expected": null, "note": "different fatty acid family; must not match omega-3"}
+{"raw": "cod liver oil", "expected": null, "note": "carries vitamin A and D as well; not reducible to omega-3"}
+{"raw": "CoQ10 200mg", "expected": "Coenzyme Q10", "note": "abbreviation"}
+{"raw": "ubiquinol", "expected": "Coenzyme Q10", "note": "reduced form"}
+{"raw": "melatonin 3mg", "expected": "Melatonin", "note": "plain with dose"}
+{"raw": "ashwagandha KSM-66", "expected": "Ashwagandha", "note": "branded extract"}
+{"raw": "turmeric", "expected": "Turmeric", "note": "plain"}
+{"raw": "tumeric", "expected": "Turmeric", "note": "common misspelling"}
+{"raw": "curcumin 500mg", "expected": "Turmeric", "note": "active constituent"}
+{"raw": "ginkgo", "expected": "Ginkgo Biloba", "note": "short name"}
+{"raw": "ginkgo biloba extract", "expected": "Ginkgo Biloba", "note": "extract wording"}
+{"raw": "gingko biloba", "expected": "Ginkgo Biloba", "note": "common misspelling"}
+{"raw": "garlic", "expected": "Garlic", "note": "plain"}
+{"raw": "aged garlic extract", "expected": "Garlic", "note": "extract wording"}
+{"raw": "ginseng", "expected": "Ginseng", "note": "plain"}
+{"raw": "panax ginseng", "expected": "Ginseng", "note": "botanical"}
+{"raw": "siberian ginseng", "expected": null, "note": "eleuthero is a different plant"}
+{"raw": "echinacea", "expected": "Echinacea", "note": "plain"}
+{"raw": "goldenseal", "expected": "Goldenseal", "note": "plain"}
+{"raw": "St. John's Wort 300mg", "expected": "St. John's Wort", "note": "with apostrophe and dose"}
+{"raw": "hypericum perforatum", "expected": "St. John's Wort", "note": "botanical"}
+{"raw": "valerian root", "expected": "Valerian", "note": "plain"}
+{"raw": "kava", "expected": "Kava", "note": "plain"}
+{"raw": "milk thistle", "expected": "Milk Thistle", "note": "plain"}
+{"raw": "silymarin", "expected": "Milk Thistle", "note": "active constituent"}
+{"raw": "saw palmetto", "expected": "Saw Palmetto", "note": "plain"}
+{"raw": "green tea extract", "expected": "Green Tea Extract", "note": "plain"}
+{"raw": "EGCG", "expected": "Green Tea Extract", "note": "catechin abbreviation"}
+{"raw": "psyllium husk", "expected": "Psyllium", "note": "fiber supplement"}
+{"raw": "glucosamine sulfate", "expected": "Glucosamine", "note": "salt form"}
+{"raw": "L-carnitine", "expected": "L-Carnitine", "note": "stereo prefix"}
+{"raw": "acetyl-l-carnitine", "expected": "L-Carnitine", "note": "acetyl ester"}
+{"raw": "alpha lipoic acid", "expected": "Alpha-Lipoic Acid", "note": "spelled out"}
+{"raw": "berberine 500mg", "expected": "Berberine", "note": "plain"}
+{"raw": "rhodiola rosea", "expected": "Rhodiola", "note": "botanical"}
+{"raw": "L-theanine", "expected": "L-Theanine", "note": "stereo prefix"}
+{"raw": "5-HTP", "expected": "5-HTP", "note": "abbreviation"}
+{"raw": "l-tryptophan", "expected": "Tryptophan", "note": "stereo prefix"}
+{"raw": "caffeine 200mg", "expected": "Caffeine", "note": "plain"}
+{"raw": "grapefruit juice", "expected": "Grapefruit Juice", "note": "food"}
+{"raw": "protein powder", "expected": null, "note": "too vague"}
+{"raw": "pre-workout", "expected": null, "note": "blend, not a compound"}
+{"raw": "greens powder", "expected": null, "note": "blend, not a compound"}
+{"raw": "B complex", "expected": null, "note": "blend of several vitamins"}
+{"raw": "levothyroxine sodium 75mcg", "expected": "Levothyroxine", "note": "salt form of drug"}
+{"raw": "Levoxyl", "expected": "Levothyroxine", "note": "brand"}
+{"raw": "Unithroid", "expected": "Levothyroxine", "note": "brand"}
+{"raw": "levo", "expected": null, "note": "ambiguous abbreviation (levofloxacin, levetiracetam, levothyroxine)"}
+{"raw": "warfarin 5mg", "expected": "Warfarin", "note": "generic with dose"}
+{"raw": "Coumadin", "expected": "Warfarin", "note": "brand"}
+{"raw": "Jantoven", "expected": "Warfarin", "note": "brand"}
+{"raw": "warfarin sodium", "expected": "Warfarin", "note": "salt form"}
+{"raw": "atorvastatin 20mg", "expected": "Atorvastatin", "note": "generic"}
+{"raw": "Lipitor", "expected": "Atorvastatin", "note": "brand"}
+{"raw": "atorvastatin calcium", "expected": "Atorvastatin", "note": "salt form"}
+{"raw": "Caduet", "expected": null, "note": "amlodipine + atorvastatin combination must not resolve to one ingredient"}
+{"raw": "omeprazole 20mg", "expected": "Omeprazole", "note": "generic"}
+{"raw": "Prilosec", "expected": "Omeprazole", "note": "brand"}
+{"raw": "Cipro", "expected": "Ciprofloxacin", "note": "brand"}
+{"raw": "ciprofloxacin hcl", "expected": "Ciprofloxacin", "note": "salt abbreviation"}
+{"raw": "Fosamax", "expected": "Alendronate", "note": "brand"}
+{"raw": "sertraline hcl", "expected": "Sertraline", "note": "salt abbreviation"}
+{"raw": "Plavix", "expected": "Clopidogrel", "note": "brand"}
+{"raw": "Norvasc", "expected": "Amlodipine", "note": "brand"}
+{"raw": "Lasix", "expected": "Furosemide", "note": "brand"}
+{"raw": "Viagra", "expected": "Sildenafil", "note": "brand"}
+{"raw": "Celexa", "expected": "Citalopram", "note": "brand"}
+{"raw": "escitalopram", "expected": null, "note": "different drug from citalopram; must not fuzzy-match"}
+{"raw": "Cymbalta", "expected": "Duloxetine", "note": "brand"}
+{"raw": "Ambien", "expected": "Zolpidem", "note": "brand"}
+{"raw": "Valium", "expected": "Diazepam", "note": "brand"}
+{"raw": "Lanoxin", "expected": "Digoxin", "note": "brand"}
+{"raw": "Tegretol", "expected": "Carbamazepine", "note": "brand"}
+{"raw": "Dilantin", "expected": "Phenytoin", "note": "brand"}
+{"raw": "Imitrex", "expected": "Sumatriptan", "note": "brand"}
+{"raw": "aspirin 81mg", "expected": "Aspirin", "note": "low-dose aspirin"}
+{"raw": "ibuprofen", "expected": null, "note": "drug not in the registry must stay unknown"}
+{"raw": "Tylenol", "expected": null, "note": "drug not in the registry must stay unknown"}
+{"raw": "metformn", "expected": null, "note": "misspelled drug must not be guessed"}
