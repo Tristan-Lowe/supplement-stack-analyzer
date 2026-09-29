@@ -106,3 +106,26 @@ def test_cannot_merge_into_itself(session):
 
     with pytest.raises(ValueError, match="into itself"):
         merge_entities(session, entity.id, entity.id)
+
+
+def test_merge_repoints_the_affected_entity(session):
+    from ssa.models import Interaction
+
+    canonical = get_or_create_entity(session, EntityKind.HERBAL, "Garlic")
+    dupe = get_or_create_entity(session, EntityKind.HERBAL, "Garlic Preparation")
+    warfarin = get_or_create_entity(session, EntityKind.DRUG, "Warfarin")
+    session.commit()
+    low, high = sorted((dupe.id, warfarin.id))
+    session.add(
+        Interaction(
+            entity_a_id=low, entity_b_id=high, mechanism="m",
+            direction="increases_effect_of_b", affected_entity_id=dupe.id,
+            severity="moderate", evidence_grade="C",
+        )
+    )
+    session.commit()
+
+    merge_entities(session, dupe.id, canonical.id)
+
+    row = session.query(Interaction).one()
+    assert row.affected_entity_id == canonical.id

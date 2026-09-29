@@ -183,6 +183,12 @@ def merge_entities(session: Session, duplicate_id: int, canonical_id: int) -> di
             moved["dropped_interactions"] += 1
         session.flush()
 
+    for row in session.scalars(
+        select(Interaction).where(Interaction.affected_entity_id == duplicate_id)
+    ).all():
+        row.affected_entity_id = canonical_id
+    session.flush()
+
     for model in (UpperLimit, TimingRule):
         for row in session.scalars(
             select(model).where(
