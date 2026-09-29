@@ -1,0 +1,36 @@
+drug,group
+apixaban,anticoagulant
+rivaroxaban,anticoagulant
+dabigatran etexilate,anticoagulant
+clopidogrel,antiplatelet
+fluoxetine,antidepressant
+escitalopram,antidepressant
+citalopram,antidepressant
+paroxetine,antidepressant
+venlafaxine,antidepressant
+duloxetine,antidepressant
+bupropion hydrochloride,antidepressant
+phenelzine,antidepressant
+simvastatin,cardio
+rosuvastatin,cardio
+lisinopril,cardio
+losartan potassium,cardio
+metoprolol,cardio
+hydrochlorothiazide,cardio
+spironolactone,cardio
+digoxin,cardio
+metformin hydrochloride,metabolic
+glipizide,metabolic
+semaglutide,metabolic
+pantoprazole,gi
+famotidine,gi
+doxycycline,anti-infective
+levofloxacin,anti-infective
+azithromycin,anti-infective
+lithium carbonate,other
+methotrexate,other
+tacrolimus,other
+lamotrigine,other
+prednisone,other
+isotretinoin,other
+levonorgestrel and ethinyl estradiol,other

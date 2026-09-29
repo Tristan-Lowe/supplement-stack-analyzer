@@ -1,0 +1,30 @@
+name: ci
+
+on:
+  push:
+    branches: [main, feat/core-pipeline]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: pip install -e ".[dev]"
+      - name: Lint
+        run: ruff check .
+      - name: Tests
+        run: pytest -q
+      # Resolution gate: runs against the committed snapshot of the published graph,
+      # so CI needs no database credential. Fails on ANY wrong-entity resolution.
+      - name: Resolution eval
+        run: python -m evals.run_resolution_eval --snapshot evals/snapshot/graph.json

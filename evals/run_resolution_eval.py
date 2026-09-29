@@ -98,8 +98,24 @@ def evaluate(session: Session, cases: list[GoldCase]) -> EvalReport:
     return EvalReport(total=len(cases), correct=correct, failures=failures)
 
 
-def main() -> int:
-    factory = make_session_factory(make_engine())
+def main(argv: list[str] | None = None) -> int:
+    """Run against the live database, or against a committed snapshot with --snapshot.
+
+    The snapshot form is what CI runs: no database credential, same resolver.
+    Exit code is non-zero below target or on ANY wrong-entity resolution.
+    """
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--snapshot", help="path to a graph.json snapshot")
+    args = parser.parse_args(argv)
+
+    if args.snapshot:
+        from ssa.web import load_snapshot
+
+        factory = load_snapshot(args.snapshot)
+    else:
+        factory = make_session_factory(make_engine())
     session = factory()
     try:
         report = evaluate(session, load_gold("evals/resolution_gold.jsonl"))
