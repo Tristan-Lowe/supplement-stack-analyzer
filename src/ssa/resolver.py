@@ -43,7 +43,9 @@ FUZZY_CANDIDATE_WINDOW = 50
 # confident answer.
 FUZZY_NEVER_WINS: frozenset[EntityKind] = frozenset({EntityKind.DRUG})
 
-_DIGITS = re.compile(r"\d+")
+_DIGITS = re.compile(r"\d")
+_PARENTHETICAL = re.compile(r"\(([^)]*)\)")
+_EXAMPLE_MARKER = re.compile(r"^\s*(e\.?g\.?|such as|including|eg)\b", re.IGNORECASE)
 
 # Inputs this short or this generic are never resolved.
 #
@@ -87,15 +89,23 @@ Resolution = Resolved | Ambiguous | Unknown
 AliasIndex = list[tuple[str, int, EntityKind]]
 
 
-def _digits_agree(a: str, b: str) -> bool:
-    """Numbers in a compound name are identity, not spelling.
+def _identity_tokens(name: str) -> list[str]:
+    """Tokens that name WHICH compound, not how it is spelled.
 
-    Vitamin B5 is not B6, omega-6 is not omega-3, and "vitamin d3 k2" is two
-    things rather than a typo of "vitamin d3". Edit distance cannot see that —
-    "vitamin b5" scores 90 against "vitamin b6" — so a fuzzy match must carry
-    exactly the same numbers as the query.
+    Any token carrying a digit ("b1", "d3", "q10", "3") and any token of one or
+    two letters ("k", "c") is identity. Edit distance cannot see that: "vitamin
+    b1" scores 90 against "vitamin k1", and "vitamin c" 89 against "vitamin e".
     """
-    return _DIGITS.findall(a) == _DIGITS.findall(b)
+    return sorted(t for t in name.split(" ") if _DIGITS.search(t) or len(t) <= 2)
+
+
+def _identity_agrees(a: str, b: str) -> bool:
+    """A fuzzy match may differ only in long, digit-free tokens.
+
+    Vitamin B5 is not B6, B1 is not K1, omega-6 is not omega-3, and "vitamin d3
+    k2" is two things rather than a typo of "vitamin d3".
+    """
+    return _identity_tokens(a) == _identity_tokens(b)
 
 
 def build_alias_index(session: Session) -> AliasIndex:
@@ -153,10 +163,36 @@ def resolve(
         if len(matches) > 1:
             return Ambiguous(raw=raw_name, candidate_ids=matches)
 
+    # Stage 2b — a parenthetical is usually a botanical or chemical gloss:
+    # "Green Tea (Camellia sinensis) extract". Resolve the text outside it; if the
+    # inside also resolves, it must agree, or the input is ambiguous.
+    # An "e.g." / "such as" parenthetical names an example, never a synonym, so it
+    # is ignored rather than used.
+    if "(" in raw_name and ")" in raw_name:
+        outside = _PARENTHETICAL.sub(" ", raw_name).strip()
+        inner = [
+            m.strip()
+            for m in _PARENTHETICAL.findall(raw_name)
+            if m.strip() and not _EXAMPLE_MARKER.match(m)
+        ]
+        if outside:
+            primary = resolve(session, outside, alias_index=alias_index)
+            if isinstance(primary, Resolved):
+                for text in inner:
+                    other = resolve(session, text, alias_index=alias_index)
+                    if isinstance(other, Resolved) and other.entity_id != primary.entity_id:
+                        return Ambiguous(
+                            raw=raw_name,
+                            candidate_ids=sorted({primary.entity_id, other.entity_id}),
+                        )
+                return primary
+            if isinstance(primary, Ambiguous):
+                return primary
+
     # Stage 3 — fuzzy match against every known alias.
     index = all_normalized_aliases(session) if alias_index is None else alias_index
     candidates = [
-        (alias, eid) for alias, eid, _kind in index if _digits_agree(normalized, alias)
+        (alias, eid) for alias, eid, _kind in index if _identity_agrees(normalized, alias)
     ]
     kind_of = {eid: kind for _alias, eid, kind in index}
     if not candidates:

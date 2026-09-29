@@ -1,0 +1,632 @@
+[
+ {
+  "raw": "5-HTP",
+  "query": "5-htp",
+  "resolved": "5-HTP",
+  "via": "alias"
+ },
+ {
+  "raw": "Aged Garlic extract powder",
+  "query": "omega 3",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Aloe Vera Gel 200:1 extract",
+  "query": "glucosamine chondroitin",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Alpha Lipoic Acid",
+  "query": "mens multivitamin",
+  "resolved": "Alpha-Lipoic Acid",
+  "via": "alias"
+ },
+ {
+  "raw": "Alpha-Lipoic Acid",
+  "query": "mens multivitamin",
+  "resolved": "Alpha-Lipoic Acid",
+  "via": "alias"
+ },
+ {
+  "raw": "Berberine",
+  "query": "berberine",
+  "resolved": "Berberine",
+  "via": "alias"
+ },
+ {
+  "raw": "Berberine Phytosome BerbActive Blend",
+  "query": "berberine",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Biotin",
+  "query": "biotin",
+  "resolved": "Biotin",
+  "via": "alias"
+ },
+ {
+  "raw": "Boron",
+  "query": "mens multivitamin",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Calcium",
+  "query": "vitamin b12",
+  "resolved": "Calcium",
+  "via": "alias"
+ },
+ {
+  "raw": "Calories",
+  "query": "omega 3",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Calories from Fat",
+  "query": "collagen",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Caralluma fimbriata (aerial part) Extract",
+  "query": "5-htp",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Carbohydrate",
+  "query": "omega 3",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Cholesterol",
+  "query": "omega 3",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Choline",
+  "query": "mens multivitamin",
+  "resolved": "Choline",
+  "via": "alias"
+ },
+ {
+  "raw": "Chondroitin Sulfate",
+  "query": "glucosamine chondroitin",
+  "resolved": "Chondroitin",
+  "via": "alias"
+ },
+ {
+  "raw": "Chondroitin Sulfate Sodium",
+  "query": "glucosamine chondroitin",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Chromium",
+  "query": "mens multivitamin",
+  "resolved": "Chromium",
+  "via": "alias"
+ },
+ {
+  "raw": "Coenzyme Q-10",
+  "query": "mens multivitamin",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Collagen Enzyme",
+  "query": "collagen",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Copper",
+  "query": "collagen",
+  "resolved": "Copper",
+  "via": "alias"
+ },
+ {
+  "raw": "Cran-Max",
+  "query": "cranberry",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "CranRich",
+  "query": "cranberry",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Digestive Support Blend",
+  "query": "probiotic",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Echinacea Complex",
+  "query": "echinacea",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Echinacea angustifolia extract",
+  "query": "echinacea",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Echinacea purpurea",
+  "query": "elderberry",
+  "resolved": "Echinacea",
+  "via": "alias"
+ },
+ {
+  "raw": "Elderberry",
+  "query": "elderberry",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Elderberry Fruit Extract",
+  "query": "elderberry",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Fish Oil Concentrate",
+  "query": "omega 3",
+  "resolved": "Omega-3 Fatty Acids",
+  "via": "salt_stripped"
+ },
+ {
+  "raw": "FloraGLO",
+  "query": "mens multivitamin",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Folate",
+  "query": "probiotic",
+  "resolved": "Folate",
+  "via": "alias"
+ },
+ {
+  "raw": "Folate Complex",
+  "query": "vitamin b12",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Glucosamine",
+  "query": "glucosamine chondroitin",
+  "resolved": "Glucosamine",
+  "via": "alias"
+ },
+ {
+  "raw": "Glucosamine Sulfate",
+  "query": "glucosamine chondroitin",
+  "resolved": "Glucosamine",
+  "via": "salt_stripped"
+ },
+ {
+  "raw": "Glucosamine Sulfate 2KCl",
+  "query": "glucosamine chondroitin",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Grape Seed Extract",
+  "query": "mens multivitamin",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Hyaluronic Acid",
+  "query": "collagen",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Hydrolyzed grass-fed Beef Collagen, Fish Collagen, Chicken Collagen and Eggshell Membrane Collagen concentrate",
+  "query": "collagen",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Inositol",
+  "query": "mens multivitamin",
+  "resolved": "Inositol",
+  "via": "alias"
+ },
+ {
+  "raw": "Inulin",
+  "query": "probiotic",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Iodine",
+  "query": "mens multivitamin",
+  "resolved": "Iodine",
+  "via": "alias"
+ },
+ {
+  "raw": "Iron",
+  "query": "probiotic",
+  "resolved": "Iron",
+  "via": "alias"
+ },
+ {
+  "raw": "Kava Kava",
+  "query": "kava",
+  "resolved": "Kava",
+  "via": "alias"
+ },
+ {
+  "raw": "L-Theanine",
+  "query": "l-theanine",
+  "resolved": "L-Theanine",
+  "via": "alias"
+ },
+ {
+  "raw": "Lactobacillus acidophilus NCFM",
+  "query": "probiotic",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Leucoselect Phytosome",
+  "query": "berberine",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Lutein",
+  "query": "mens multivitamin",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Lyc-O-Mato",
+  "query": "mens multivitamin",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Lycopene",
+  "query": "mens multivitamin",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Magnesium",
+  "query": "magnesium citrate",
+  "resolved": "Magnesium",
+  "via": "alias"
+ },
+ {
+  "raw": "Manganese",
+  "query": "mens multivitamin",
+  "resolved": "Manganese",
+  "via": "alias"
+ },
+ {
+  "raw": "Marine NeoCell Collagen",
+  "query": "collagen",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Methylsulfonylmethane",
+  "query": "glucosamine chondroitin",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Molybdenum",
+  "query": "mens multivitamin",
+  "resolved": "Molybdenum",
+  "via": "alias"
+ },
+ {
+  "raw": "Mullein",
+  "query": "elderberry",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Niacin",
+  "query": "vitamin b12",
+  "resolved": "Niacin",
+  "via": "alias"
+ },
+ {
+  "raw": "Omega-3 Fatty Acids",
+  "query": "omega 3",
+  "resolved": "Omega-3 Fatty Acids",
+  "via": "alias"
+ },
+ {
+  "raw": "Omega-3 Fish Oil concentrate",
+  "query": "omega 3",
+  "resolved": "Omega-3 Fatty Acids",
+  "via": "salt_stripped"
+ },
+ {
+  "raw": "PACRAN",
+  "query": "cranberry",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Pantothenic Acid",
+  "query": "vitamin b12",
+  "resolved": "Vitamin B5",
+  "via": "alias"
+ },
+ {
+  "raw": "Phytosterols",
+  "query": "mens multivitamin",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Potassium",
+  "query": "mens multivitamin",
+  "resolved": "Potassium",
+  "via": "alias"
+ },
+ {
+  "raw": "Probiotic",
+  "query": "probiotic",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Proprietary Blend",
+  "query": "vitamin c",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Proprietary Flavonoid Blend",
+  "query": "vitamin c",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Proprietary Probiotic Blend",
+  "query": "probiotic",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Protein",
+  "query": "omega 3",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "R-Alpha Lipoic Acid",
+  "query": "berberine",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Raspberry",
+  "query": "elderberry",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Rhodiola extract",
+  "query": "rhodiola",
+  "resolved": "Rhodiola",
+  "via": "salt_stripped"
+ },
+ {
+  "raw": "Rhodiola rosea",
+  "query": "rhodiola",
+  "resolved": "Rhodiola",
+  "via": "alias"
+ },
+ {
+  "raw": "Riboflavin",
+  "query": "mens multivitamin",
+  "resolved": "Vitamin B2",
+  "via": "alias"
+ },
+ {
+  "raw": "Rose Hips",
+  "query": "vitamin c",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Saw Palmetto Berry Extract",
+  "query": "mens multivitamin",
+  "resolved": "Saw Palmetto",
+  "via": "salt_stripped"
+ },
+ {
+  "raw": "Selenium",
+  "query": "mens multivitamin",
+  "resolved": "Selenium",
+  "via": "alias"
+ },
+ {
+  "raw": "Siberian Rhodiola root",
+  "query": "rhodiola",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Silicon",
+  "query": "collagen",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Sodium",
+  "query": "vitamin c",
+  "resolved": "Sodium",
+  "via": "alias"
+ },
+ {
+  "raw": "Sugar",
+  "query": "vitamin c",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Thiamine",
+  "query": "mens multivitamin",
+  "resolved": "Vitamin B1",
+  "via": "alias"
+ },
+ {
+  "raw": "Total Carbohydrates",
+  "query": "vitamin c",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Total Fat",
+  "query": "omega 3",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Total Sugars",
+  "query": "elderberry",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Tribulus Fruit Powder",
+  "query": "mens multivitamin",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Tribulus powder",
+  "query": "mens multivitamin",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Valerian",
+  "query": "valerian root",
+  "resolved": "Valerian",
+  "via": "alias"
+ },
+ {
+  "raw": "Valerian Root",
+  "query": "valerian root",
+  "resolved": "Valerian",
+  "via": "salt_stripped"
+ },
+ {
+  "raw": "Valerian Root Extract",
+  "query": "valerian root",
+  "resolved": "Valerian",
+  "via": "salt_stripped"
+ },
+ {
+  "raw": "Valerian root",
+  "query": "valerian root",
+  "resolved": "Valerian",
+  "via": "salt_stripped"
+ },
+ {
+  "raw": "Vanadium",
+  "query": "mens multivitamin",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "Vitamin A",
+  "query": "mens multivitamin",
+  "resolved": "Vitamin A",
+  "via": "alias"
+ },
+ {
+  "raw": "Vitamin B1",
+  "query": "vitamin b12",
+  "resolved": "Vitamin B1",
+  "via": "alias"
+ },
+ {
+  "raw": "Vitamin B12",
+  "query": "collagen",
+  "resolved": "Vitamin B12",
+  "via": "alias"
+ },
+ {
+  "raw": "Vitamin B2",
+  "query": "vitamin b12",
+  "resolved": "Vitamin B2",
+  "via": "alias"
+ },
+ {
+  "raw": "Vitamin B6",
+  "query": "collagen",
+  "resolved": "Vitamin B6",
+  "via": "alias"
+ },
+ {
+  "raw": "Vitamin C",
+  "query": "vitamin c",
+  "resolved": "Vitamin C",
+  "via": "alias"
+ },
+ {
+  "raw": "Vitamin D",
+  "query": "mens multivitamin",
+  "resolved": "Vitamin D3",
+  "via": "alias"
+ },
+ {
+  "raw": "Vitamin E",
+  "query": "omega 3",
+  "resolved": "Vitamin E",
+  "via": "alias"
+ },
+ {
+  "raw": "Vitamin K",
+  "query": "mens multivitamin",
+  "resolved": "Vitamin K",
+  "via": "alias"
+ },
+ {
+  "raw": "Vitamin K2",
+  "query": "mens multivitamin",
+  "resolved": "Vitamin K",
+  "via": "alias"
+ },
+ {
+  "raw": "Zinc",
+  "query": "elderberry",
+  "resolved": "Zinc",
+  "via": "alias"
+ },
+ {
+  "raw": "high energy Water",
+  "query": "potassium",
+  "resolved": null,
+  "via": "unknown"
+ },
+ {
+  "raw": "organic Turmeric",
+  "query": "probiotic",
+  "resolved": null,
+  "via": "unknown"
+ }
+]

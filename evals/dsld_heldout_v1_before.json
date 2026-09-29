@@ -1,0 +1,507 @@
+[
+ {
+  "raw": "Alcohol Free Concentrated Extract Of",
+  "query": "milk thistle",
+  "result": null
+ },
+ {
+  "raw": "Allicin",
+  "query": "garlic",
+  "result": "Garlic (alias)"
+ },
+ {
+  "raw": "Ashwagandha",
+  "query": "ashwagandha",
+  "result": "Ashwagandha (alias)"
+ },
+ {
+  "raw": "Ashwagandha Root Extract",
+  "query": "ashwagandha",
+  "result": "Ashwagandha (salt_stripped)"
+ },
+ {
+  "raw": "Ashwagandha extract",
+  "query": "ashwagandha",
+  "result": "Ashwagandha (salt_stripped)"
+ },
+ {
+  "raw": "Betatene",
+  "query": "coq10",
+  "result": null
+ },
+ {
+  "raw": "BioPerine",
+  "query": "turmeric curcumin",
+  "result": null
+ },
+ {
+  "raw": "Biotin",
+  "query": "vitamin b complex",
+  "result": "Biotin (alias)"
+ },
+ {
+  "raw": "Black Pepper extract",
+  "query": "turmeric curcumin",
+  "result": null
+ },
+ {
+  "raw": "Black fermented Garlic powder extract",
+  "query": "garlic",
+  "result": null
+ },
+ {
+  "raw": "Calcium",
+  "query": "vitamin d3",
+  "result": "Calcium (alias)"
+ },
+ {
+  "raw": "Calories",
+  "query": "fish oil",
+  "result": null
+ },
+ {
+  "raw": "Calories from Fat",
+  "query": "vitamin d3",
+  "result": null
+ },
+ {
+  "raw": "Certified Organic Whole Food Blend",
+  "query": "vitamin k2",
+  "result": null
+ },
+ {
+  "raw": "Choline",
+  "query": "iron",
+  "result": "Choline (alias)"
+ },
+ {
+  "raw": "Choline Bitartrate",
+  "query": "vitamin b complex",
+  "result": "Choline (alias)"
+ },
+ {
+  "raw": "Chromium",
+  "query": "prenatal multivitamin",
+  "result": "Chromium (alias)"
+ },
+ {
+  "raw": "CoQsol Coenzyme Q10",
+  "query": "coq10",
+  "result": null
+ },
+ {
+  "raw": "Copper",
+  "query": "iron",
+  "result": "Copper (alias)"
+ },
+ {
+  "raw": "Coriander seed extract",
+  "query": "turmeric curcumin",
+  "result": null
+ },
+ {
+  "raw": "Creatine",
+  "query": "creatine",
+  "result": "Creatine (alias)"
+ },
+ {
+  "raw": "Curcumin",
+  "query": "turmeric curcumin",
+  "result": "Turmeric (alias)"
+ },
+ {
+  "raw": "Docosahexaenoic Acid",
+  "query": "fish oil",
+  "result": null
+ },
+ {
+  "raw": "Eicosapentaenoic Acid",
+  "query": "fish oil",
+  "result": null
+ },
+ {
+  "raw": "Fatty Acids",
+  "query": "saw palmetto",
+  "result": null
+ },
+ {
+  "raw": "Fennel seed extract",
+  "query": "turmeric curcumin",
+  "result": null
+ },
+ {
+  "raw": "Fish Oil Concentrate",
+  "query": "fish oil",
+  "result": null
+ },
+ {
+  "raw": "Fish Oil concentrate",
+  "query": "fish oil",
+  "result": null
+ },
+ {
+  "raw": "Folate",
+  "query": "iron",
+  "result": "Folate (alias)"
+ },
+ {
+  "raw": "Folic Acid",
+  "query": "vitamin b complex",
+  "result": "Folate (alias)"
+ },
+ {
+  "raw": "Garlic",
+  "query": "garlic",
+  "result": "Garlic (alias)"
+ },
+ {
+  "raw": "Garlic extract",
+  "query": "garlic",
+  "result": "Garlic (salt_stripped)"
+ },
+ {
+  "raw": "Ginkgo biloba",
+  "query": "ginkgo biloba",
+  "result": "Ginkgo Biloba (alias)"
+ },
+ {
+  "raw": "Ginkgo biloba 50:1 extract",
+  "query": "ginkgo biloba",
+  "result": null
+ },
+ {
+  "raw": "Ginkgo biloba leaf extract",
+  "query": "ginkgo biloba",
+  "result": "Ginkgo Biloba (fuzzy)"
+ },
+ {
+  "raw": "Glycine",
+  "query": "iron",
+  "result": null
+ },
+ {
+  "raw": "Green Tea (Camellia sinensis) extract",
+  "query": "green tea extract",
+  "result": null
+ },
+ {
+  "raw": "Green Tea Extract",
+  "query": "green tea extract",
+  "result": "Green Tea Extract (alias)"
+ },
+ {
+  "raw": "Green Tea extract",
+  "query": "green tea extract",
+  "result": "Green Tea Extract (alias)"
+ },
+ {
+  "raw": "Green Tea standardized extract",
+  "query": "green tea extract",
+  "result": "Green Tea Extract (salt_stripped)"
+ },
+ {
+  "raw": "Inositol",
+  "query": "vitamin b complex",
+  "result": null
+ },
+ {
+  "raw": "Iodine",
+  "query": "prenatal multivitamin",
+  "result": "Iodine (alias)"
+ },
+ {
+  "raw": "Iron",
+  "query": "iron",
+  "result": "Iron (alias)"
+ },
+ {
+  "raw": "L-Glutamic Acid",
+  "query": "calcium magnesium zinc",
+  "result": null
+ },
+ {
+  "raw": "Lactoferrin",
+  "query": "iron",
+  "result": null
+ },
+ {
+  "raw": "Liquid Liver Fractions",
+  "query": "iron",
+  "result": null
+ },
+ {
+  "raw": "Magnesium",
+  "query": "magnesium glycinate",
+  "result": "Magnesium (alias)"
+ },
+ {
+  "raw": "Magnesium Glycinate",
+  "query": "magnesium glycinate",
+  "result": "Magnesium (salt_stripped)"
+ },
+ {
+  "raw": "Manganese",
+  "query": "prenatal multivitamin",
+  "result": "Manganese (alias)"
+ },
+ {
+  "raw": "Melatonin",
+  "query": "melatonin",
+  "result": "Melatonin (alias)"
+ },
+ {
+  "raw": "Micro-Peptide Creatine Complex",
+  "query": "creatine",
+  "result": null
+ },
+ {
+  "raw": "MicroActive Melatonin",
+  "query": "melatonin",
+  "result": null
+ },
+ {
+  "raw": "Milk Thistle",
+  "query": "milk thistle",
+  "result": "Milk Thistle (alias)"
+ },
+ {
+  "raw": "Milk Thistle seed extract",
+  "query": "milk thistle",
+  "result": null
+ },
+ {
+  "raw": "Molybdenum",
+  "query": "prenatal multivitamin",
+  "result": null
+ },
+ {
+  "raw": "N.O. Pump Charger",
+  "query": "creatine",
+  "result": null
+ },
+ {
+  "raw": "Niacin",
+  "query": "vitamin b complex",
+  "result": "Niacin (alias)"
+ },
+ {
+  "raw": "Niacinamide",
+  "query": "iron",
+  "result": "Niacin (alias)"
+ },
+ {
+  "raw": "PABA",
+  "query": "vitamin b complex",
+  "result": null
+ },
+ {
+  "raw": "Pantothenic Acid",
+  "query": "iron",
+  "result": null
+ },
+ {
+  "raw": "Para-Aminobenzoic Acid",
+  "query": "vitamin b complex",
+  "result": null
+ },
+ {
+  "raw": "Parsley",
+  "query": "garlic",
+  "result": null
+ },
+ {
+  "raw": "Phosphorous",
+  "query": "prenatal multivitamin",
+  "result": null
+ },
+ {
+  "raw": "Phosphorus",
+  "query": "creatine",
+  "result": null
+ },
+ {
+  "raw": "Potassium",
+  "query": "creatine",
+  "result": "Potassium (alias)"
+ },
+ {
+  "raw": "Proprietary Blend",
+  "query": "melatonin",
+  "result": null
+ },
+ {
+  "raw": "Proprietary Blend (Non-Nutrient/Non-Botanical)",
+  "query": "vitamin b complex",
+  "result": null
+ },
+ {
+  "raw": "Protein",
+  "query": "iron",
+  "result": null
+ },
+ {
+  "raw": "Riboflavin",
+  "query": "iron",
+  "result": null
+ },
+ {
+  "raw": "Saw Palmetto",
+  "query": "saw palmetto",
+  "result": "Saw Palmetto (alias)"
+ },
+ {
+  "raw": "Saw Palmetto berries extract",
+  "query": "saw palmetto",
+  "result": null
+ },
+ {
+  "raw": "Saw Palmetto berry supercritical extract",
+  "query": "saw palmetto",
+  "result": null
+ },
+ {
+  "raw": "Selenium",
+  "query": "prenatal multivitamin",
+  "result": "Selenium (alias)"
+ },
+ {
+  "raw": "Sodium",
+  "query": "creatine",
+  "result": null
+ },
+ {
+  "raw": "St. John's Wort extract",
+  "query": "st john's wort",
+  "result": "St. John's Wort (alias)"
+ },
+ {
+  "raw": "St. John's wort flower extract",
+  "query": "st john's wort",
+  "result": null
+ },
+ {
+  "raw": "St. John's wort herb",
+  "query": "st john's wort",
+  "result": null
+ },
+ {
+  "raw": "St. John\u2019s Wort",
+  "query": "st john's wort",
+  "result": "St. John's Wort (alias)"
+ },
+ {
+  "raw": "Thiamine",
+  "query": "iron",
+  "result": null
+ },
+ {
+  "raw": "Total Alcohol Free St. John's Wort Extracts",
+  "query": "st john's wort",
+  "result": null
+ },
+ {
+  "raw": "Total Carbohydrates",
+  "query": "magnesium glycinate",
+  "result": null
+ },
+ {
+  "raw": "Total Fat",
+  "query": "fish oil",
+  "result": null
+ },
+ {
+  "raw": "Turmeric",
+  "query": "turmeric curcumin",
+  "result": "Turmeric (alias)"
+ },
+ {
+  "raw": "Turmeric Curcumin",
+  "query": "turmeric curcumin",
+  "result": null
+ },
+ {
+  "raw": "Turmeric root powder",
+  "query": "turmeric curcumin",
+  "result": null
+ },
+ {
+  "raw": "Ubiquinol",
+  "query": "coq10",
+  "result": "Coenzyme Q10 (alias)"
+ },
+ {
+  "raw": "Validated Full Spectrum Profile",
+  "query": "st john's wort",
+  "result": null
+ },
+ {
+  "raw": "Vitamin A",
+  "query": "vitamin d3",
+  "result": "Vitamin A (alias)"
+ },
+ {
+  "raw": "Vitamin B1",
+  "query": "vitamin b complex",
+  "result": "Vitamin K (fuzzy)"
+ },
+ {
+  "raw": "Vitamin B12",
+  "query": "iron",
+  "result": "Vitamin B12 (alias)"
+ },
+ {
+  "raw": "Vitamin B2",
+  "query": "vitamin b complex",
+  "result": "Vitamin K (fuzzy)"
+ },
+ {
+  "raw": "Vitamin B3",
+  "query": "prenatal multivitamin",
+  "result": "Vitamin D3 (fuzzy)"
+ },
+ {
+  "raw": "Vitamin B5",
+  "query": "prenatal multivitamin",
+  "result": null
+ },
+ {
+  "raw": "Vitamin B6",
+  "query": "zinc",
+  "result": "Vitamin B6 (alias)"
+ },
+ {
+  "raw": "Vitamin C",
+  "query": "magnesium glycinate",
+  "result": "Vitamin C (alias)"
+ },
+ {
+  "raw": "Vitamin D",
+  "query": "vitamin d3",
+  "result": "Vitamin D3 (alias)"
+ },
+ {
+  "raw": "Vitamin D3",
+  "query": "calcium magnesium zinc",
+  "result": "Vitamin D3 (alias)"
+ },
+ {
+  "raw": "Vitamin E",
+  "query": "fish oil",
+  "result": "Vitamin E (alias)"
+ },
+ {
+  "raw": "Vitamin K2",
+  "query": "prenatal multivitamin",
+  "result": "Vitamin K (alias)"
+ },
+ {
+  "raw": "Zinc",
+  "query": "zinc",
+  "result": "Zinc (alias)"
+ },
+ {
+  "raw": "desiccated Liver",
+  "query": "vitamin b complex",
+  "result": null
+ }
+]

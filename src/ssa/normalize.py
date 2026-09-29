@@ -69,6 +69,14 @@ PREPARATION_FORMS: frozenset[str] = frozenset(
         "husk",
         "standardized",
         "preparation",
+        "powder",
+        "leaf",
+        "flower",
+        "herb",
+        "berry",
+        "berries",
+        "concentrate",
+        "supercritical",
     }
 )
 

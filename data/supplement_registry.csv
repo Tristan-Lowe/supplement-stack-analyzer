@@ -5,7 +5,7 @@ Vitamin K,NUTRIENT,vitamin k1|vitamin k2|phytonadione|phylloquinone|menaquinone|
 Biotin,NUTRIENT,vitamin b7|d biotin,
 Potassium,NUTRIENT,potassium citrate|potassium gluconate,Potassium chloride is deliberately absent: it is also a prescription drug
 Chromium,NUTRIENT,chromium picolinate|chromium polynicotinate,
-Omega-3 Fatty Acids,NUTRIENT,omega 3|omega 3s|fish oil|omega 3 fish oil|krill oil|algal oil,Cod liver oil is deliberately absent: it also carries vitamins A and D
+Omega-3 Fatty Acids,NUTRIENT,omega 3|omega 3s|fish oil|omega 3 fish oil|krill oil|algal oil|eicosapentaenoic acid|docosahexaenoic acid,Cod liver oil is deliberately absent: it also carries vitamins A and D
 Creatine,NUTRIENT,creatine monohydrate|creatine hcl,
 Coenzyme Q10,NUTRIENT,coq10|ubiquinone|ubiquinol|ubidecarenone,
 Melatonin,NUTRIENT,,
@@ -18,7 +18,7 @@ L-Theanine,NUTRIENT,theanine,
 5-HTP,NUTRIENT,5 hydroxytryptophan|oxitriptan,
 Tryptophan,NUTRIENT,l tryptophan,Absorbs the bootstrap DRUG entity of the same name
 Ashwagandha,HERBAL,withania somnifera|ksm 66|ashwagandha ksm 66|sensoril,
-Turmeric,HERBAL,curcumin|curcuma longa,Curcumin is the active constituent and carries turmeric's interactions
+Turmeric,HERBAL,curcumin|curcuma longa|turmeric curcumin,Curcumin is the active constituent and carries turmeric's interactions
 St. John's Wort,HERBAL,st johns wort|hypericum|hypericum perforatum|St. John's Wort Extract,Absorbs the bootstrap entity
 Ginkgo Biloba,HERBAL,ginkgo|Ginkgo Biloba Extract|egb 761,Absorbs the bootstrap entity
 Garlic,HERBAL,Garlic Preparation|aged garlic extract|allium sativum|allicin,Absorbs the bootstrap entity
@@ -27,7 +27,7 @@ Echinacea,HERBAL,Echinacea Preparation|echinacea purpurea,Absorbs the bootstrap 
 Goldenseal,HERBAL,Goldenseal Extract|hydrastis canadensis,Absorbs the bootstrap entity (filed as a drug)
 Valerian,HERBAL,valeriana officinalis,
 Kava,HERBAL,kava kava|piper methysticum,
-Milk Thistle,HERBAL,silymarin|silybum marianum|silibinin,
+Milk Thistle,HERBAL,silymarin|silybum marianum|silibinin|milk thistle seed,
 Saw Palmetto,HERBAL,serenoa repens,
 Green Tea Extract,HERBAL,green tea|egcg|epigallocatechin gallate|camellia sinensis,
 Psyllium,HERBAL,ispaghula,
@@ -35,3 +35,12 @@ Berberine,HERBAL,berberine hcl,
 Rhodiola,HERBAL,rhodiola rosea|golden root,
 Grapefruit Juice,OTHER,grapefruit,Food; absorbs the bootstrap entity filed as a drug
 Walnuts,OTHER,walnut|Walnut Allergenic Extract,Food. RxNorm bound the label's walnuts to an allergy immunotherapy extract
+Vitamin B1,NUTRIENT,thiamine|thiamin|thiamine mononitrate|benfotiamine,
+Vitamin B2,NUTRIENT,riboflavin|riboflavin 5 phosphate,
+Vitamin B5,NUTRIENT,pantothenic acid|calcium pantothenate|pantethine,
+Molybdenum,NUTRIENT,sodium molybdate|molybdenum glycinate,
+Phosphorus,NUTRIENT,phosphate,
+Sodium,NUTRIENT,,Listed on most supplement facts panels
+Inositol,NUTRIENT,myo inositol,
+Glycine,NUTRIENT,,
+Piperine,HERBAL,bioperine|black pepper|black pepper extract|piper nigrum,Absorption enhancer; raises blood levels of some drugs

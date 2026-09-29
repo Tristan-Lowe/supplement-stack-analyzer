@@ -32,7 +32,7 @@
 {"raw": "niacinamide", "expected": "Niacin", "note": "amide form"}
 {"raw": "Vitamin B6", "expected": "Vitamin B6", "note": "exact"}
 {"raw": "P5P", "expected": "Vitamin B6", "note": "pyridoxal-5-phosphate abbreviation"}
-{"raw": "vitamin b5", "expected": null, "note": "numbered vitamin not in registry must not fuzzy-match B6"}
+{"raw": "vitamin b5", "expected": "Vitamin B5", "note": "numbered vitamin; added to the registry 2026-09-29 from real DSLD labels"}
 {"raw": "Vitamin B12 1000mcg", "expected": "Vitamin B12", "note": "B12 with dose"}
 {"raw": "methylcobalamin", "expected": "Vitamin B12", "note": "B12 form"}
 {"raw": "cyanocobalamin", "expected": "Vitamin B12", "note": "B12 form"}
@@ -137,3 +137,7 @@
 {"raw": "ibuprofen", "expected": null, "note": "drug not in the registry must stay unknown"}
 {"raw": "Tylenol", "expected": null, "note": "drug not in the registry must stay unknown"}
 {"raw": "metformn", "expected": null, "note": "misspelled drug must not be guessed"}
+{"raw": "Vitamin B1", "expected": "Vitamin B1", "note": "once fuzzy-matched Vitamin K via 'vitamin k1'"}
+{"raw": "Vitamin B2", "expected": "Vitamin B2", "note": "once fuzzy-matched Vitamin K via 'vitamin k2'"}
+{"raw": "Vitamin B3", "expected": "Niacin", "note": "once fuzzy-matched Vitamin D3"}
+{"raw": "vitamin b4", "expected": null, "note": "not a recognised vitamin; must not fuzzy-match a neighbour"}

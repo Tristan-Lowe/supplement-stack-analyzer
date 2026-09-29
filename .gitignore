@@ -10,3 +10,4 @@ dist/
 build/
 local.db
 *.db
+backups/

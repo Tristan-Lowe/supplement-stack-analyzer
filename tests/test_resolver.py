@@ -198,3 +198,50 @@ def test_supplement_misspelling_still_fuzzy_matches(session):
     assert isinstance(result, Resolved)
     assert result.entity_id == turmeric.id
     assert result.matched_via == "fuzzy"
+
+
+def test_vitamin_letters_are_identity_not_spelling(session):
+    """"vitamin b1" scored 90 against "vitamin k1" and resolved to vitamin K.
+
+    Found on real DSLD labels, not by the hand-written gold set.
+    """
+    k = get_or_create_entity(session, EntityKind.NUTRIENT, "Vitamin K")
+    add_alias(session, k, "vitamin k1", source="test")
+    add_alias(session, k, "vitamin k2", source="test")
+    get_or_create_entity(session, EntityKind.NUTRIENT, "Vitamin D3")
+    session.commit()
+
+    for probe in ("Vitamin B1", "Vitamin B2", "Vitamin B3"):
+        assert isinstance(resolve(session, probe), Unknown), probe
+
+
+def test_parenthetical_gloss_resolves_through_the_outside_text(session):
+    green_tea = get_or_create_entity(session, EntityKind.HERBAL, "Green Tea Extract")
+    add_alias(session, green_tea, "green tea", source="test")
+    add_alias(session, green_tea, "camellia sinensis", source="test")
+    session.commit()
+
+    result = resolve(session, "Green Tea (Camellia sinensis) extract")
+
+    assert isinstance(result, Resolved)
+    assert result.entity_id == green_tea.id
+
+
+def test_parenthetical_that_disagrees_is_ambiguous(session):
+    garlic = get_or_create_entity(session, EntityKind.HERBAL, "Garlic")
+    ginseng = get_or_create_entity(session, EntityKind.HERBAL, "Ginseng")
+    session.commit()
+
+    result = resolve(session, "Garlic (ginseng)")
+
+    assert isinstance(result, Ambiguous)
+    assert sorted(result.candidate_ids) == sorted([garlic.id, ginseng.id])
+
+
+def test_example_parenthetical_is_not_used_as_a_synonym(session):
+    get_or_create_entity(session, EntityKind.DRUG, "Amitriptyline")
+    session.commit()
+
+    result = resolve(session, "Tricyclic antidepressants (e.g., amitriptyline)")
+
+    assert isinstance(result, Unknown)
