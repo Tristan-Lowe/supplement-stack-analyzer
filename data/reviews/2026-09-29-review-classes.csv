@@ -1,0 +1,29 @@
+id,action,severity,evidence,direction,affected,note
+125,approve,moderate,,decreases_absorption_of_b,Levothyroxine,Class warning (PPIs); pH-dependent absorption
+126,approve,moderate,,decreases_absorption_of_b,Levothyroxine,Class warning (antacids); separate doses
+130,approve,major,,increases_effect_of_b,Oral Anticoagulants,Raised anticoagulant response; monitor INR
+131,approve,moderate,,decreases_effect_of_b,Digitalis Glycosides,Digitalis levels fall as patient becomes euthyroid
+132,approve,major,C,increases_toxicity_risk,,Arrhythmia and CNS stimulation; class warning
+133,approve,moderate,,decreases_absorption_of_b,Levothyroxine,Binding; separate doses
+134,approve,moderate,,decreases_effect_of_b,Antidiabetic Agents,Stored direction said increases; label says glycemic control worsens
+135,approve,major,,increases_toxicity_risk,,Label says monitor closely; not contraindicated
+136,approve,major,,increases_toxicity_risk,,Label says monitor closely; not contraindicated
+137,approve,major,,increases_toxicity_risk,,Label says monitor closely; not contraindicated
+138,approve,moderate,,increases_effect_of_b,Hormonal Contraceptives,Raised contraceptive hormone levels
+139,approve,major,,increases_toxicity_risk,,Rhabdomyolysis risk
+140,approve,moderate,C,increases_effect_of_b,Benzodiazepines,Prolonged elimination
+141,approve,moderate,,increases_effect_of_b,Theophylline,Raised theophylline levels
+143,approve,major,,increases_effect_of_b,Warfarin,Enhanced anticoagulant effect
+144,approve,moderate,,increases_toxicity_risk,,Transient creatinine rise
+145,approve,major,C,increases_effect_of_b,Anticoagulants,Quote describes INR increase indirectly; graded C
+146,approve,moderate,C,increases_toxicity_risk,,Convulsions at very high quinolone doses
+147,approve,moderate,,decreases_absorption_of_b,Alendronate,Stored direction pointed at antacids; alendronate absorption falls
+148,approve,moderate,,decreases_absorption_of_b,Ciprofloxacin,Multivalent cations; separate doses
+149,approve,moderate,,increases_toxicity_risk,,GI irritation; caution
+150,approve,major,,increases_effect_of_b,Tricyclic Antidepressants,CYP2D6 inhibition plus serotonin syndrome risk
+151,approve,major,C,increases_toxicity_risk,,Serotonin syndrome; rare reports
+152,approve,major,,increases_toxicity_risk,,Upper GI bleeding risk
+153,approve,contraindicated,,increases_toxicity_risk,,Label: SSRIs with MAOIs contraindicated
+154,approve,major,,increases_toxicity_risk,,Bleeding risk
+155,approve,major,,increases_toxicity_risk,,Bleeding risk
+156,approve,major,,increases_toxicity_risk,,Serotonin syndrome risk

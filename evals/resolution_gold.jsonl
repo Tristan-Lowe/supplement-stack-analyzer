@@ -125,7 +125,7 @@
 {"raw": "Lasix", "expected": "Furosemide", "note": "brand"}
 {"raw": "Viagra", "expected": "Sildenafil", "note": "brand"}
 {"raw": "Celexa", "expected": "Citalopram", "note": "brand"}
-{"raw": "escitalopram", "expected": null, "note": "different drug from citalopram; must not fuzzy-match"}
+{"raw": "escitalopram", "expected": "Escitalopram", "note": "now in the registry (RxClass SSRI member); still must not fuzzy-match citalopram"}
 {"raw": "Cymbalta", "expected": "Duloxetine", "note": "brand"}
 {"raw": "Ambien", "expected": "Zolpidem", "note": "brand"}
 {"raw": "Valium", "expected": "Diazepam", "note": "brand"}
@@ -134,10 +134,11 @@
 {"raw": "Dilantin", "expected": "Phenytoin", "note": "brand"}
 {"raw": "Imitrex", "expected": "Sumatriptan", "note": "brand"}
 {"raw": "aspirin 81mg", "expected": "Aspirin", "note": "low-dose aspirin"}
-{"raw": "ibuprofen", "expected": null, "note": "drug not in the registry must stay unknown"}
-{"raw": "Tylenol", "expected": null, "note": "drug not in the registry must stay unknown"}
+{"raw": "ibuprofen", "expected": "Ibuprofen", "note": "added to the registry 2026-09-29 (RxClass NSAID member)"}
+{"raw": "Tylenol", "expected": "Acetaminophen", "note": "brand; acetaminophen added to the registry 2026-09-29"}
 {"raw": "metformn", "expected": null, "note": "misspelled drug must not be guessed"}
 {"raw": "Vitamin B1", "expected": "Vitamin B1", "note": "once fuzzy-matched Vitamin K via 'vitamin k1'"}
 {"raw": "Vitamin B2", "expected": "Vitamin B2", "note": "once fuzzy-matched Vitamin K via 'vitamin k2'"}
 {"raw": "Vitamin B3", "expected": "Niacin", "note": "once fuzzy-matched Vitamin D3"}
 {"raw": "vitamin b4", "expected": null, "note": "not a recognised vitamin; must not fuzzy-match a neighbour"}
+{"raw": "escitaloprm", "expected": null, "note": "misspelled drug must not be guessed (drugs never win a fuzzy match)"}
