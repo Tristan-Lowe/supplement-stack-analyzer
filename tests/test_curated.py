@@ -135,3 +135,21 @@ def test_shipped_registry_loads_cleanly(session):
     report = load_supplement_registry(session)
 
     assert report.created >= 30
+
+
+def test_renormalize_survives_a_key_collision(session):
+    """An old key rewritten onto a sibling's key must not violate uniqueness."""
+    sjw = get_or_create_entity(session, EntityKind.HERBAL, "Hypericum")
+    session.add_all([
+        EntityAlias(entity_id=sjw.id, alias="St. John's Wort",
+                    normalized_alias="st john s wort", source="old"),
+        EntityAlias(entity_id=sjw.id, alias="st johns wort",
+                    normalized_alias="st johns wort", source="curated"),
+    ])
+    session.commit()
+
+    renormalize_aliases(session)
+
+    keys = [a.normalized_alias for a in session.query(EntityAlias)
+            .filter_by(entity_id=sjw.id).all()]
+    assert sorted(keys) == ["hypericum", "st johns wort"]

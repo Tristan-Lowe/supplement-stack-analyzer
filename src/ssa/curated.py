@@ -121,18 +121,33 @@ def renormalize_aliases(session: Session) -> int:
     row whose new key duplicates a sibling on the same entity is removed, since it
     now adds nothing.
     """
-    changed = 0
-    seen: set[tuple[int, str]] = set()
     rows = session.scalars(select(EntityAlias).order_by(EntityAlias.id)).all()
-    for alias in rows:
-        key = normalize_name(alias.alias)
-        if (alias.entity_id, key) in seen:
-            session.delete(alias)
+    new_key = {row.id: normalize_name(row.alias) for row in rows}
+
+    # Keep one row per (entity, key), preferring a row whose stored key is already
+    # correct. Deletes are flushed BEFORE any key is rewritten: rewriting first would
+    # momentarily duplicate a key and violate the unique constraint.
+    keep: dict[tuple[int, str], EntityAlias] = {}
+    for row in rows:
+        slot = (row.entity_id, new_key[row.id])
+        current = keep.get(slot)
+        if current is None or (
+            row.normalized_alias == new_key[row.id]
+            and current.normalized_alias != new_key[current.id]
+        ):
+            keep[slot] = row
+    survivors = {row.id for row in keep.values()}
+
+    changed = 0
+    for row in rows:
+        if row.id not in survivors:
+            session.delete(row)
             changed += 1
-            continue
-        seen.add((alias.entity_id, key))
-        if alias.normalized_alias != key:
-            alias.normalized_alias = key
+    session.flush()
+
+    for row in rows:
+        if row.id in survivors and row.normalized_alias != new_key[row.id]:
+            row.normalized_alias = new_key[row.id]
             changed += 1
     session.commit()
     return changed
