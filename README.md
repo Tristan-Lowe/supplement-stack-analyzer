@@ -194,8 +194,7 @@ a Postgres lookup with no model in it.
 
 Recall against an independent, labelled interaction gold set is the metric that would
 justify a coverage claim, and that set does not exist yet. **No recall number is claimed
-here, and none should be inferred.** Also outstanding: exact vitamin D IU-to-mcg
-conversion for the upper-limit check, drug classes as entities (they account for most
+here, and none should be inferred.** Also outstanding: drug classes as entities (they account for most
 of the quarantine), branded product expansion in the request path, an LLM parser for
 messy input.
 

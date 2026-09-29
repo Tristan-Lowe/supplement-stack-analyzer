@@ -2,10 +2,12 @@
 
 Two rules govern this check.
 
-**Never guess a unit.** When a dose is reported in a unit that differs from the
-published limit, it is not converted. A wrong mcg-to-IU conversion would produce
-a false all-clear on a toxicity ceiling. Unit conversion is a plan-two task with
-its own tests.
+**Never guess a unit.** A dose in a unit that differs from the published limit is
+converted only when the conversion is exact and does not depend on the chemical
+form (`data/unit_conversions.csv`). Vitamin D qualifies: 1 mcg is 40 IU for every
+form. Vitamin A and E do not — an IU of retinol and an IU of beta-carotene are
+different amounts — so those stay unconverted, because a wrong conversion would
+produce a false all-clear on a toxicity ceiling.
 
 **Never go silent.** An entity whose doses cannot all be measured is still
 assessed on the portion that can be, and the shortfall is reported. If the
@@ -17,7 +19,11 @@ reads as an all-clear.
 
 from __future__ import annotations
 
+import csv
 from collections import defaultdict
+from dataclasses import replace
+from functools import lru_cache
+from pathlib import Path
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -25,6 +31,42 @@ from sqlalchemy.orm import Session
 from ssa.analyze.findings import Citation, Finding, FindingKind, Tier, format_labels
 from ssa.analyze.redundancy import ResolvedDose
 from ssa.models import Entity, Severity, UpperLimit
+
+UNIT_CONVERSIONS_CSV = Path(__file__).resolve().parents[3] / "data" / "unit_conversions.csv"
+
+# Display names for units in user-facing text.
+_UNIT_LABEL = {"iu": "IU", "mcg": "mcg", "mg": "mg", "g": "g", "ml": "ml"}
+
+
+@lru_cache(maxsize=1)
+def _conversions() -> dict[tuple[str, str, str], float]:
+    """(canonical_name, from_unit, to_unit) -> factor. Empty if the file is absent."""
+    table: dict[tuple[str, str, str], float] = {}
+    path = UNIT_CONVERSIONS_CSV
+    if not path.exists():
+        path = Path(__file__).resolve().parents[1] / "unit_conversions.csv"  # deployed copy
+    if not path.exists():
+        return table
+    for row in csv.DictReader(path.read_text(encoding="utf-8").splitlines()):
+        key = (row["canonical_name"], row["from_unit"].lower(), row["to_unit"].lower())
+        table[key] = float(row["factor"])
+    return table
+
+
+def _to_limit_unit(dose: ResolvedDose, name: str, limit_unit: str) -> ResolvedDose:
+    """Convert a dose into the limit's unit when an exact conversion exists."""
+    if dose.amount is None or dose.unit is None or dose.unit == limit_unit:
+        return dose
+    factor = _conversions().get((name, dose.unit, limit_unit))
+    if factor is None:
+        return dose
+    original = f"{dose.amount:g} {_UNIT_LABEL.get(dose.unit, dose.unit)}"
+    return replace(
+        dose,
+        amount=dose.amount * factor,
+        unit=limit_unit,
+        source_label=f"{dose.source_label} ({original})",
+    )
 
 
 def check_upper_limits(session: Session, doses: list[ResolvedDose]) -> list[Finding]:
@@ -45,6 +87,11 @@ def check_upper_limits(session: Session, doses: list[ResolvedDose]) -> list[Find
         if limit is None:
             continue
 
+        entity_for_name = session.get(Entity, entity_id)
+        name_for_conversion = entity_for_name.canonical_name if entity_for_name else ""
+        contributions = [
+            _to_limit_unit(c, name_for_conversion, limit.unit) for c in contributions
+        ]
         usable = [
             c
             for c in contributions

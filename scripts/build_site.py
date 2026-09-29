@@ -60,6 +60,7 @@ def main() -> int:
             shutil.copytree(src, dst, ignore=shutil.ignore_patterns("__pycache__"))
         else:
             shutil.copy2(src, dst)
+    shutil.copy2(ROOT / "data" / "unit_conversions.csv", LIB / "ssa" / "unit_conversions.csv")
     (LIB / "graph.json").write_text(json.dumps(snapshot, separators=(",", ":")), encoding="utf-8")
 
     kinds = [e["kind"] for e in snapshot["entities"]]

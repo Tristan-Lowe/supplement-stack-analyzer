@@ -116,3 +116,59 @@ def test_entity_without_a_known_limit_is_skipped(session):
     )
 
     assert findings == []
+
+
+def _entity_id(session, name):
+    load_upper_limits(session, "data/upper_limits.csv")
+    return session.scalars(select(Entity).where(Entity.canonical_name == name)).one().id
+
+
+def test_vitamin_d_iu_converts_exactly_and_breaches_the_limit(session):
+    """5000 IU is 125 mcg, over the 100 mcg limit. One of the most common doses sold."""
+    d3 = _entity_id(session, "Vitamin D3")
+
+    findings = check_upper_limits(
+        session, [ResolvedDose(entity_id=d3, amount=5000.0, unit="iu", source_label="Vitamin D")]
+    )
+
+    assert len(findings) == 1
+    assert findings[0].kind is FindingKind.UPPER_LIMIT
+    assert findings[0].severity is Severity.MAJOR
+    assert "125 mcg" in findings[0].detail
+    assert "5000 IU" in findings[0].detail
+
+
+def test_vitamin_d_iu_and_mcg_sum_together(session):
+    d3 = _entity_id(session, "Vitamin D3")
+
+    findings = check_upper_limits(
+        session,
+        [
+            ResolvedDose(entity_id=d3, amount=2000.0, unit="iu", source_label="Vitamin D"),
+            ResolvedDose(entity_id=d3, amount=60.0, unit="mcg", source_label="Multivitamin"),
+        ],
+    )
+
+    assert findings[0].kind is FindingKind.UPPER_LIMIT  # 50 + 60 = 110 mcg
+    assert "110 mcg" in findings[0].detail
+
+
+def test_vitamin_d_iu_under_the_limit_is_not_flagged(session):
+    d3 = _entity_id(session, "Vitamin D3")
+
+    findings = check_upper_limits(
+        session, [ResolvedDose(entity_id=d3, amount=2000.0, unit="iu", source_label="Vitamin D")]
+    )
+
+    assert findings == []
+
+
+def test_vitamin_a_iu_is_still_not_converted(session):
+    """Retinol and beta-carotene IU convert differently. Never guess."""
+    a = _entity_id(session, "Vitamin A")
+
+    findings = check_upper_limits(
+        session, [ResolvedDose(entity_id=a, amount=20000.0, unit="iu", source_label="Vitamin A")]
+    )
+
+    assert findings[0].kind is FindingKind.UNRESOLVED
