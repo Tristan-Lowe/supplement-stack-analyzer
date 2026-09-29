@@ -94,6 +94,11 @@ PREPARATION_FORMS: frozenset[str] = frozenset(
 )
 
 _PUNCT = re.compile(r"[^a-z0-9]+")
+
+# Apostrophes are deleted, not turned into spaces. Splitting "john's" into
+# "john s" leaves a lone one-letter token, and the resolver treats short tokens as
+# identity (vitamin letters), so every possessive name lost its fuzzy match.
+_APOSTROPHE = re.compile(r"['‘’ʼ`]")
 _WS = re.compile(r"\s+")
 
 
@@ -105,7 +110,7 @@ def normalize_name(raw: str) -> str:
     """
     folded = unicodedata.normalize("NFKD", raw)
     folded = "".join(c for c in folded if not unicodedata.combining(c))
-    lowered = folded.lower()
+    lowered = _APOSTROPHE.sub("", folded.lower())
     spaced = _PUNCT.sub(" ", lowered)
     collapsed = _WS.sub(" ", spaced).strip()
 

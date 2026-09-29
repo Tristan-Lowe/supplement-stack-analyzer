@@ -62,3 +62,9 @@ def test_preparation_words_strip_but_oil_and_seed_do_not():
 def test_dose_forms_strip():
     assert strip_salt_forms(normalize_name("sertraline hydrochloride capsules")) == "sertraline"
     assert strip_salt_forms("calcium supplements") == "calcium"
+
+
+def test_apostrophes_are_deleted_not_split():
+    """A lone "s" token would be treated as identity and block fuzzy matching."""
+    assert normalize_name("St. John's Wort") == "st johns wort"
+    assert normalize_name("St John’s Wort") == "st johns wort"
