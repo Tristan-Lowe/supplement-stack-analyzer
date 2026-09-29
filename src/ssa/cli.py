@@ -14,6 +14,7 @@ from ssa.connectors.openfda import fetch_interaction_sections
 from ssa.curated import load_supplement_registry, renormalize_aliases
 from ssa.db import make_engine, make_session_factory
 from ssa.extract.llm import make_client
+from ssa.extract.schema import VALID_DIRECTIONS
 from ssa.models import (
     Base,
     Entity,
@@ -266,6 +267,8 @@ def cmd_review(args: argparse.Namespace) -> int:
                 note=args.note,
                 severity=Severity(args.severity) if args.severity else None,
                 evidence_grade=EvidenceGrade(args.evidence) if args.evidence else None,
+                direction=args.direction,
+                affected_entity_id=args.affected,
             )
         else:
             result = reject(session, args.id, reviewer=args.reviewer, note=args.note)
@@ -310,6 +313,8 @@ def main() -> int:
     review.add_argument("--note", help="why; stored with the decision")
     review.add_argument("--severity", choices=[s.value for s in Severity])
     review.add_argument("--evidence", choices=[g.value for g in EvidenceGrade])
+    review.add_argument("--direction", choices=sorted(VALID_DIRECTIONS))
+    review.add_argument("--affected", type=int, help="entity id the direction acts on")
     review.set_defaults(func=cmd_review)
 
     analyze = subparsers.add_parser("analyze", help="Analyze a stack given as text")

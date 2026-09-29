@@ -90,6 +90,8 @@ def approve(
     note: str | None = None,
     severity: Severity | None = None,
     evidence_grade: EvidenceGrade | None = None,
+    direction: str | None = None,
+    affected_entity_id: int | None = None,
 ) -> Interaction | None:
     """Publish an interaction so the analysis engine will surface it.
 
@@ -111,6 +113,16 @@ def approve(
             f"evidence {interaction.evidence_grade.value} -> {evidence_grade.value}"
         )
         interaction.evidence_grade = evidence_grade
+    if direction is not None and direction != interaction.direction:
+        corrections.append(f"direction {interaction.direction} -> {direction}")
+        interaction.direction = direction
+    if affected_entity_id is not None and affected_entity_id != interaction.affected_entity_id:
+        if affected_entity_id not in (interaction.entity_a_id, interaction.entity_b_id):
+            raise ValueError("affected entity must be one side of the pair")
+        corrections.append(
+            f"affected {interaction.affected_entity_id} -> {affected_entity_id}"
+        )
+        interaction.affected_entity_id = affected_entity_id
 
     full_note = "; ".join(part for part in [note, *corrections] if part) or None
     return _set_status(

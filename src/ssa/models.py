@@ -114,6 +114,12 @@ class Interaction(Base):
     entity_b_id: Mapped[int] = mapped_column(ForeignKey("entities.id"), nullable=False)
     mechanism: Mapped[str] = mapped_column(Text, nullable=False)
     direction: Mapped[str] = mapped_column(String(64), nullable=False)
+    # The entity a "..._of_b" direction acts on. The pair is stored in id order,
+    # which says nothing about which compound the source described as affected, so
+    # "b" alone is meaningless once stored. Null for directions that name no side.
+    affected_entity_id: Mapped[int | None] = mapped_column(
+        ForeignKey("entities.id"), nullable=True
+    )
     severity: Mapped[Severity] = mapped_column(Enum(Severity), nullable=False)
     evidence_grade: Mapped[EvidenceGrade] = mapped_column(Enum(EvidenceGrade), nullable=False)
     confidence: Mapped[float] = mapped_column(Float, nullable=False, default=0.5)

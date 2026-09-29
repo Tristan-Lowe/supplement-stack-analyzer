@@ -297,3 +297,45 @@ def test_approved_interaction_is_not_silently_unpublished(session):
     assert row.severity is Severity.MAJOR          # escalation still recorded
     conflicts = session.scalars(select(ConflictRecord)).all()
     assert any(c.field == "severity" for c in conflicts)  # reviewer can see it
+
+
+def test_affected_entity_survives_pair_reordering(session):
+    """The model's "b" must stay the affected compound after id-ordering the pair."""
+    from ssa.models import EntityKind, EvidenceGrade, Severity
+    from ssa.registry import get_or_create_entity
+
+    levo = get_or_create_entity(session, EntityKind.DRUG, "Levothyroxine")
+    orlistat = get_or_create_entity(session, EntityKind.DRUG, "Orlistat")
+    session.commit()
+    assert levo.id < orlistat.id
+    text = "Orlistat may decrease levothyroxine absorption."
+
+    row = merge_triple(
+        session, entity_a_id=orlistat.id, entity_b_id=levo.id,
+        mechanism="m", direction="decreases_absorption_of_b",
+        severity=Severity.MODERATE, evidence_grade=EvidenceGrade.C,
+        span=text, source="t", source_url="https://t/1", source_text=text,
+    )
+
+    assert (row.entity_a_id, row.entity_b_id) == (levo.id, orlistat.id)
+    assert row.affected_entity_id == levo.id
+
+
+def test_same_wording_about_opposite_compounds_is_a_conflict(session):
+    from ssa.models import ConflictRecord, EntityKind, EvidenceGrade, Severity
+    from ssa.registry import get_or_create_entity
+
+    a = get_or_create_entity(session, EntityKind.DRUG, "Alpha")
+    b = get_or_create_entity(session, EntityKind.DRUG, "Beta")
+    session.commit()
+    text = "Alpha and Beta interact."
+    common = dict(
+        mechanism="m", direction="decreases_effect_of_b", severity=Severity.MODERATE,
+        evidence_grade=EvidenceGrade.C, span=text, source="t", source_text=text,
+    )
+
+    merge_triple(session, entity_a_id=a.id, entity_b_id=b.id, source_url="https://t/1", **common)
+    merge_triple(session, entity_a_id=b.id, entity_b_id=a.id, source_url="https://t/2", **common)
+
+    conflicts = session.query(ConflictRecord).filter_by(field="direction").all()
+    assert len(conflicts) == 1

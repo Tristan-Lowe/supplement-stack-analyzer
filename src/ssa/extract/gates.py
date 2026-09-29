@@ -60,6 +60,20 @@ def _ordered_pair(entity_a_id: int, entity_b_id: int) -> tuple[int, int]:
     )
 
 
+def affected_side(direction: str, entity_b_id: int) -> int | None:
+    """The entity a direction acts on, fixed BEFORE the pair is reordered.
+
+    The model writes "decreases_absorption_of_b" about its own (a, b). Storage
+    sorts the pair by id, so for about half of all rows the stored b is the model's
+    a. Recording the affected entity by id is what keeps the claim true.
+    """
+    return entity_b_id if direction.endswith("_of_b") else None
+
+
+def _direction_label(direction: str, affected_id: int | None) -> str:
+    return direction if affected_id is None else f"{direction} (entity {affected_id})"
+
+
 def _initial_status(severity: Severity) -> InteractionStatus:
     if SEVERITY_RANK[severity] >= REVIEW_REQUIRED_AT_OR_ABOVE:
         return InteractionStatus.PENDING_REVIEW
@@ -121,6 +135,7 @@ def merge_triple(
             f"span not found in source ({source_url}): {span[:80]!r}"
         )
 
+    affected_id = affected_side(direction, entity_b_id)
     low_id, high_id = _ordered_pair(entity_a_id, entity_b_id)
 
     interaction = session.scalars(
@@ -136,6 +151,7 @@ def merge_triple(
             entity_b_id=high_id,
             mechanism=mechanism,
             direction=direction,
+            affected_entity_id=affected_id,
             severity=severity,
             evidence_grade=evidence_grade,
             confidence=BASE_CONFIDENCE,
@@ -183,14 +199,17 @@ def merge_triple(
             if interaction.status is InteractionStatus.PENDING_REVIEW:
                 interaction.status = _initial_status(severity)
 
-    if interaction.direction != direction:
+    # Same wording about opposite compounds is a disagreement, not agreement.
+    if (interaction.direction, interaction.affected_entity_id) != (direction, affected_id):
         agreed = False
         session.add(
             ConflictRecord(
                 interaction_id=interaction.id,
                 field="direction",
-                existing_value=interaction.direction,
-                incoming_value=direction,
+                existing_value=_direction_label(
+                    interaction.direction, interaction.affected_entity_id
+                ),
+                incoming_value=_direction_label(direction, affected_id),
                 incoming_source_url=source_url,
             )
         )
