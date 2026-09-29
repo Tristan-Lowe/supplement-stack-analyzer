@@ -1,6 +1,6 @@
 from ssa.models import EntityKind
 from ssa.registry import add_alias, get_or_create_entity
-from ssa.resolver import Ambiguous, Resolved, Unknown, resolve
+from ssa.resolver import Ambiguous, Resolved, Unknown, build_alias_index, resolve
 
 
 def test_exact_alias_match(session):
@@ -117,3 +117,45 @@ def test_many_aliases_of_one_entity_do_not_hide_a_rival(session):
     else:
         assert isinstance(result, Ambiguous)
         assert rival.id in result.candidate_ids
+
+
+# --- The indexed path and the database path must not diverge ---
+
+
+def test_index_path_agrees_with_database_path(session):
+    """Two implementations of one contract is a bug waiting to happen.
+
+    build_alias_index() exists purely for speed. If it ever disagrees with the
+    direct database path, resolution silently depends on which caller you are.
+    """
+    magnesium = get_or_create_entity(session, EntityKind.NUTRIENT, "Magnesium")
+    add_alias(session, magnesium, "Magnesium Bisglycinate", source="dsld")
+    get_or_create_entity(session, EntityKind.NUTRIENT, "Manganese")
+    get_or_create_entity(session, EntityKind.HERBAL, "Ashwagandha")
+    potassium = get_or_create_entity(session, EntityKind.NUTRIENT, "Potassium")
+    kcl = get_or_create_entity(session, EntityKind.DRUG, "Potassium Chloride")
+    add_alias(session, potassium, "potassium", source="ods")
+    add_alias(session, kcl, "potassium", source="rxnorm")
+    session.commit()
+
+    index = build_alias_index(session)
+
+    probes = [
+        "Magnesium Bisglycinate",   # exact alias
+        "Magnesium Threonate",      # salt-stripped
+        "ashwaganda",               # fuzzy
+        "manganese",                # must stay unknown
+        "potassium",                # ambiguous
+        "Vitamin B",                # vague
+        "flibbertigibbet extract",  # unknown
+    ]
+
+    for probe in probes:
+        from_db = resolve(session, probe)
+        from_index = resolve(session, probe, alias_index=index)
+        assert type(from_db) is type(from_index), probe
+        if isinstance(from_db, Resolved):
+            assert from_db.entity_id == from_index.entity_id, probe
+            assert from_db.matched_via == from_index.matched_via, probe
+        if isinstance(from_db, Ambiguous):
+            assert sorted(from_db.candidate_ids) == sorted(from_index.candidate_ids), probe

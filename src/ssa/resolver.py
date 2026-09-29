@@ -95,21 +95,29 @@ def resolve(
     if normalized in VAGUE_TERMS:
         return Unknown(raw=raw_name)
 
+    # When an index is supplied, every stage is served from memory. Without it
+    # each stage is a separate round trip, which on a remote database dominates
+    # the cost of resolving a stack.
+    def _lookup(key: str) -> list[int]:
+        if alias_index is None:
+            return [e.id for e in find_by_alias(session, key)]
+        return sorted({eid for alias, eid in alias_index if alias == key})
+
     # Stage 1 — exact alias match.
-    matches = find_by_alias(session, raw_name)
+    matches = _lookup(normalized)
     if len(matches) == 1:
-        return Resolved(entity_id=matches[0].id, matched_via="alias")
+        return Resolved(entity_id=matches[0], matched_via="alias")
     if len(matches) > 1:
-        return Ambiguous(raw=raw_name, candidate_ids=[e.id for e in matches])
+        return Ambiguous(raw=raw_name, candidate_ids=matches)
 
     # Stage 2 — strip salt and chelate forms, then retry exact match.
     stripped = strip_salt_forms(normalized)
     if stripped != normalized:
-        matches = find_by_alias(session, stripped)
+        matches = _lookup(stripped)
         if len(matches) == 1:
-            return Resolved(entity_id=matches[0].id, matched_via="salt_stripped")
+            return Resolved(entity_id=matches[0], matched_via="salt_stripped")
         if len(matches) > 1:
-            return Ambiguous(raw=raw_name, candidate_ids=[e.id for e in matches])
+            return Ambiguous(raw=raw_name, candidate_ids=matches)
 
     # Stage 3 — fuzzy match against every known alias.
     candidates = all_normalized_aliases(session) if alias_index is None else alias_index
