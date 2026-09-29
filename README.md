@@ -117,6 +117,8 @@ on context, and picking one would be a guess.
 `REJECTED` stays rejected even when a later, higher-severity source arrives. Evidence
 still accrues so the call can be revisited deliberately.
 
+**Try it:** [supplement-stack-analyzer-opal.vercel.app](https://supplement-stack-analyzer-opal.vercel.app) — paste a stack, get cited findings.
+
 ---
 
 ## Status — measured, not claimed
@@ -195,7 +197,7 @@ justify a coverage claim, and that set does not exist yet. **No recall number is
 here, and none should be inferred.** Also outstanding: exact vitamin D IU-to-mcg
 conversion for the upper-limit check, drug classes as entities (they account for most
 of the quarantine), branded product expansion in the request path, an LLM parser for
-messy input, a web UI, and any deployment.
+messy input.
 
 ## Setup
 
@@ -241,13 +243,30 @@ This tool reports published information for education. It is not medical advice
 and does not replace a pharmacist or physician.
 ```
 
+## The public checker
+
+`site/` is the deployed checker: a static page and one Python function on Vercel. The
+deployment never touches the production database. `scripts/build_site.py` exports only
+**published** interactions to a JSON snapshot that ships inside the function and loads into
+in-memory SQLite, so no credential is deployed and nothing pending review can leak.
+
+```bash
+python scripts/build_site.py      # snapshot + page (numbers filled from the data)
+python scripts/serve_site.py      # local, same headers as production
+cd site && vercel deploy --prod
+```
+
+Security: strict CSP (no inline script or style), HSTS, framing denied, DOM built with
+`textContent` only, citation links allowlisted on both sides, same-origin + JSON-only +
+size caps + rate limit on the API, no request logging.
+
 ## Tests
 
 ```bash
 pytest -v && ruff check src tests evals
 ```
 
-193 tests. No test makes a network call or an API call — HTTP is mocked with
+207 tests. No test makes a network call or an API call — HTTP is mocked with
 `responses`, the Anthropic client with `MagicMock`. Tests run against in-memory
 SQLite; production is Postgres, and all column types are kept portable.
 
