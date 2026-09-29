@@ -15,7 +15,14 @@ from dataclasses import dataclass
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
-from ssa.models import Entity, Interaction, InteractionStatus
+from ssa.models import (
+    Entity,
+    EvidenceGrade,
+    Interaction,
+    InteractionStatus,
+    Severity,
+    utcnow,
+)
 
 
 @dataclass(frozen=True)
@@ -59,21 +66,63 @@ def list_pending(session: Session, limit: int = 50) -> list[PendingItem]:
 
 
 def _set_status(
-    session: Session, interaction_id: int, status: InteractionStatus
+    session: Session,
+    interaction_id: int,
+    status: InteractionStatus,
+    reviewer: str,
+    note: str | None,
 ) -> Interaction | None:
     interaction = session.get(Interaction, interaction_id)
     if interaction is None:
         return None
     interaction.status = status
+    interaction.reviewed_by = reviewer
+    interaction.reviewed_at = utcnow()
+    interaction.review_note = note
     session.commit()
     return interaction
 
 
-def approve(session: Session, interaction_id: int) -> Interaction | None:
-    """Publish an interaction so the analysis engine will surface it."""
-    return _set_status(session, interaction_id, InteractionStatus.PUBLISHED)
+def approve(
+    session: Session,
+    interaction_id: int,
+    reviewer: str = "unspecified",
+    note: str | None = None,
+    severity: Severity | None = None,
+    evidence_grade: EvidenceGrade | None = None,
+) -> Interaction | None:
+    """Publish an interaction so the analysis engine will surface it.
+
+    The reviewer may correct severity or evidence grade on the way through. Those
+    are the fields the model is least reliable on (it contradicts itself across
+    label sections), so correcting them is the review's main job. Every correction
+    is written into the note with its original value.
+    """
+    interaction = session.get(Interaction, interaction_id)
+    if interaction is None:
+        return None
+
+    corrections: list[str] = []
+    if severity is not None and severity is not interaction.severity:
+        corrections.append(f"severity {interaction.severity.value} -> {severity.value}")
+        interaction.severity = severity
+    if evidence_grade is not None and evidence_grade is not interaction.evidence_grade:
+        corrections.append(
+            f"evidence {interaction.evidence_grade.value} -> {evidence_grade.value}"
+        )
+        interaction.evidence_grade = evidence_grade
+
+    full_note = "; ".join(part for part in [note, *corrections] if part) or None
+    return _set_status(
+        session, interaction_id, InteractionStatus.PUBLISHED, reviewer, full_note
+    )
 
 
-def reject(session: Session, interaction_id: int) -> Interaction | None:
+def reject(
+    session: Session,
+    interaction_id: int,
+    reviewer: str = "unspecified",
+    note: str | None = None,
+) -> Interaction | None:
     """Reject an interaction. merge_triple will not resurrect it on later ingests."""
-    return _set_status(session, interaction_id, InteractionStatus.REJECTED)
+    return _set_status(session, interaction_id, InteractionStatus.REJECTED, reviewer, note)

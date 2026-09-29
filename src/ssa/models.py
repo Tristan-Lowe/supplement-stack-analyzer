@@ -125,6 +125,12 @@ class Interaction(Base):
     )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
+    # Review audit trail. Who accepted or rejected the claim, when, and why. Null
+    # on rows no one has reviewed, including minor edges auto-published by the gate.
+    reviewed_by: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    review_note: Mapped[str | None] = mapped_column(Text, nullable=True)
+
     evidence: Mapped[list[Evidence]] = relationship(
         back_populates="interaction", cascade="all, delete-orphan"
     )

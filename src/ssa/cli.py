@@ -14,7 +14,16 @@ from ssa.connectors.openfda import fetch_interaction_sections
 from ssa.curated import load_supplement_registry, renormalize_aliases
 from ssa.db import make_engine, make_session_factory
 from ssa.extract.llm import make_client
-from ssa.models import Base, Entity, EntityAlias, EntityKind, PipelineRun, utcnow
+from ssa.models import (
+    Base,
+    Entity,
+    EntityAlias,
+    EntityKind,
+    EvidenceGrade,
+    PipelineRun,
+    Severity,
+    utcnow,
+)
 from ssa.pipeline import content_key, ingest_section
 from ssa.registry import find_nutrient_duplicates, merge_entities, reclassify_entities
 from ssa.review import approve, list_pending, reject
@@ -249,8 +258,17 @@ def cmd_review(args: argparse.Namespace) -> int:
             print("Reject with:   ssa review reject <id>")
             return 0
 
-        action = approve if args.action == "approve" else reject
-        result = action(session, args.id)
+        if args.action == "approve":
+            result = approve(
+                session,
+                args.id,
+                reviewer=args.reviewer,
+                note=args.note,
+                severity=Severity(args.severity) if args.severity else None,
+                evidence_grade=EvidenceGrade(args.evidence) if args.evidence else None,
+            )
+        else:
+            result = reject(session, args.id, reviewer=args.reviewer, note=args.note)
         if result is None:
             print(f"No interaction with id {args.id}.")
             return 1
@@ -288,6 +306,10 @@ def main() -> int:
     review = subparsers.add_parser("review", help="Review interactions held for approval")
     review.add_argument("action", choices=["list", "approve", "reject"])
     review.add_argument("id", nargs="?", type=int, help="interaction id (approve/reject)")
+    review.add_argument("--reviewer", default="unspecified", help="who is deciding")
+    review.add_argument("--note", help="why; stored with the decision")
+    review.add_argument("--severity", choices=[s.value for s in Severity])
+    review.add_argument("--evidence", choices=[g.value for g in EvidenceGrade])
     review.set_defaults(func=cmd_review)
 
     analyze = subparsers.add_parser("analyze", help="Analyze a stack given as text")

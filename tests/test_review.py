@@ -68,3 +68,37 @@ def test_reject_keeps_it_hidden(session):
 def test_unknown_id_returns_none(session):
     assert approve(session, 9999) is None
     assert reject(session, 9999) is None
+
+
+def test_decision_records_who_when_and_why(session):
+    _, _, interaction = seed_pending(session)
+
+    approve(session, interaction.id, reviewer="alice", note="label is explicit")
+
+    row = session.get(Interaction, interaction.id)
+    assert row.reviewed_by == "alice"
+    assert row.reviewed_at is not None
+    assert row.review_note == "label is explicit"
+
+
+def test_reviewer_can_correct_severity_and_the_original_is_kept(session):
+    _, _, interaction = seed_pending(session, severity=Severity.MAJOR)
+
+    approve(
+        session, interaction.id, reviewer="alice", note="absorption only",
+        severity=Severity.MODERATE, evidence_grade=EvidenceGrade.A,
+    )
+
+    row = session.get(Interaction, interaction.id)
+    assert row.severity is Severity.MODERATE
+    assert row.evidence_grade is EvidenceGrade.A
+    assert row.review_note == "absorption only; severity major -> moderate; evidence B -> A"
+
+
+def test_reject_records_the_reviewer(session):
+    _, _, interaction = seed_pending(session)
+
+    reject(session, interaction.id, reviewer="alice", note="wrong pair")
+
+    row = session.get(Interaction, interaction.id)
+    assert (row.reviewed_by, row.review_note) == ("alice", "wrong pair")
