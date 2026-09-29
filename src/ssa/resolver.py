@@ -7,11 +7,13 @@ silently dropped.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 
 from rapidfuzz import fuzz, process
 from sqlalchemy.orm import Session
 
+from ssa.models import EntityKind
 from ssa.normalize import normalize_name, strip_salt_forms
 from ssa.registry import all_normalized_aliases, find_by_alias
 
@@ -29,12 +31,30 @@ FUZZY_MARGIN = 5
 # ambiguity check below.
 FUZZY_CANDIDATE_WINDOW = 50
 
+# A drug can never WIN a fuzzy match. Drug names that differ by a few letters are
+# routinely different drugs — escitalopram/citalopram scores 91, above the
+# threshold — and binding a user's medication to the wrong drug is a false claim
+# about what they take. A misspelled drug stays Unknown, which the user can see
+# and correct. Misspellings are a supplement problem ("ashwaganda", "tumeric"),
+# and that is where fuzzy matching earns its keep.
+#
+# Drugs still take part in the contest: a typo that lands equally near a nutrient
+# and a drug is a genuine ambiguity, and hiding the drug would turn it into a
+# confident answer.
+FUZZY_NEVER_WINS: frozenset[EntityKind] = frozenset({EntityKind.DRUG})
+
+_DIGITS = re.compile(r"\d+")
+
 # Inputs this short or this generic are never resolved.
+#
+# "vitamin d" is deliberately NOT here. The vitamin D upper limit applies to all
+# forms combined, so an unqualified "vitamin D" is specific enough to check.
 VAGUE_TERMS: frozenset[str] = frozenset(
     {
         "vitamin",
         "vitamin b",
-        "vitamin d",
+        "vitamin b complex",
+        "b complex",
         "mineral",
         "multivitamin",
         "supplement",
@@ -64,7 +84,21 @@ class Unknown:
 Resolution = Resolved | Ambiguous | Unknown
 
 
-def build_alias_index(session: Session) -> list[tuple[str, int]]:
+AliasIndex = list[tuple[str, int, EntityKind]]
+
+
+def _digits_agree(a: str, b: str) -> bool:
+    """Numbers in a compound name are identity, not spelling.
+
+    Vitamin B5 is not B6, omega-6 is not omega-3, and "vitamin d3 k2" is two
+    things rather than a typo of "vitamin d3". Edit distance cannot see that —
+    "vitamin b5" scores 90 against "vitamin b6" — so a fuzzy match must carry
+    exactly the same numbers as the query.
+    """
+    return _DIGITS.findall(a) == _DIGITS.findall(b)
+
+
+def build_alias_index(session: Session) -> AliasIndex:
     """Snapshot every (normalized_alias, entity_id) pair for batch resolution.
 
     The fuzzy stage otherwise re-reads the whole alias table on every call. That
@@ -83,7 +117,7 @@ def build_alias_index(session: Session) -> list[tuple[str, int]]:
 def resolve(
     session: Session,
     raw_name: str,
-    alias_index: list[tuple[str, int]] | None = None,
+    alias_index: AliasIndex | None = None,
 ) -> Resolution:
     """Resolve raw text to an entity through four ordered stages.
 
@@ -101,7 +135,7 @@ def resolve(
     def _lookup(key: str) -> list[int]:
         if alias_index is None:
             return [e.id for e in find_by_alias(session, key)]
-        return sorted({eid for alias, eid in alias_index if alias == key})
+        return sorted({eid for alias, eid, _kind in alias_index if alias == key})
 
     # Stage 1 — exact alias match.
     matches = _lookup(normalized)
@@ -120,7 +154,11 @@ def resolve(
             return Ambiguous(raw=raw_name, candidate_ids=matches)
 
     # Stage 3 — fuzzy match against every known alias.
-    candidates = all_normalized_aliases(session) if alias_index is None else alias_index
+    index = all_normalized_aliases(session) if alias_index is None else alias_index
+    candidates = [
+        (alias, eid) for alias, eid, _kind in index if _digits_agree(normalized, alias)
+    ]
+    kind_of = {eid: kind for _alias, eid, kind in index}
     if not candidates:
         return Unknown(raw=raw_name)
 
@@ -151,6 +189,9 @@ def resolve(
 
     if len(ranked) > 1 and best_score - ranked[1][1] < FUZZY_MARGIN:
         return Ambiguous(raw=raw_name, candidate_ids=sorted(best_by_entity))
+
+    if kind_of[best_entity_id] in FUZZY_NEVER_WINS:
+        return Unknown(raw=raw_name)
 
     return Resolved(
         entity_id=best_entity_id, matched_via="fuzzy", score=float(best_score)

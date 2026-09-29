@@ -87,10 +87,16 @@ def list_aliases(session: Session, entity: Entity) -> list[EntityAlias]:
     return list(session.scalars(stmt).all())
 
 
-def all_normalized_aliases(session: Session) -> list[tuple[str, int]]:
-    """Every (normalized_alias, entity_id) pair. Used by the fuzzy resolver stage."""
-    stmt = select(EntityAlias.normalized_alias, EntityAlias.entity_id)
-    return [(row[0], row[1]) for row in session.execute(stmt).all()]
+def all_normalized_aliases(session: Session) -> list[tuple[str, int, EntityKind]]:
+    """Every (normalized_alias, entity_id, kind) triple. Used by the resolver.
+
+    Kind travels with the alias because the fuzzy stage treats drugs differently
+    from supplements.
+    """
+    stmt = select(EntityAlias.normalized_alias, EntityAlias.entity_id, Entity.kind).join(
+        Entity, Entity.id == EntityAlias.entity_id
+    )
+    return [(row[0], row[1], row[2]) for row in session.execute(stmt).all()]
 
 
 def _ordered(a: int, b: int) -> tuple[int, int]:

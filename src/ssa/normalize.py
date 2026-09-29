@@ -26,6 +26,10 @@ ABBREVIATIONS: dict[str, str] = {
     "nac": "n acetylcysteine",
     "epa": "eicosapentaenoic acid",
     "dha": "docosahexaenoic acid",
+    "hcl": "hydrochloride",
+    # "creatine mono" is how people write creatine monohydrate. Expanding it lets
+    # the salt stage strip it like any other form.
+    "mono": "monohydrate",
 }
 
 # Salt, chelate, and ester forms that do not change the active element.
@@ -49,6 +53,22 @@ SALT_FORMS: frozenset[str] = frozenset(
         "chelate",
         "chelated",
         "monohydrate",
+        "hydrochloride",
+    }
+)
+
+# Preparation words that describe how a botanical is sold, not what it is. An
+# extract or root of an herb carries that herb's interactions.
+#
+# "oil" and "seed" are deliberately absent: "fish oil" is not fish, and "grape
+# seed extract" is not grapes.
+PREPARATION_FORMS: frozenset[str] = frozenset(
+    {
+        "extract",
+        "root",
+        "husk",
+        "standardized",
+        "preparation",
     }
 )
 
@@ -68,8 +88,16 @@ def normalize_name(raw: str) -> str:
     spaced = _PUNCT.sub(" ", lowered)
     collapsed = _WS.sub(" ", spaced).strip()
 
-    tokens = [ABBREVIATIONS.get(token, token) for token in collapsed.split(" ")]
-    return " ".join(tokens)
+    expanded = " ".join(ABBREVIATIONS.get(token, token) for token in collapsed.split(" "))
+
+    # An expansion can repeat the word it follows: "vitamin k2" expands k2 to
+    # "vitamin k2" and would otherwise produce "vitamin vitamin k2", a key that
+    # matches nothing. Collapse adjacent repeats.
+    deduped: list[str] = []
+    for token in expanded.split(" "):
+        if not deduped or deduped[-1] != token:
+            deduped.append(token)
+    return " ".join(deduped)
 
 
 # Stereochemistry prefixes. Ubiquitous on labels: L-theanine, L-carnitine,
@@ -80,7 +108,7 @@ STEREO_MARKERS: frozenset[str] = frozenset({"l", "d", "dl", "ld"})
 def strip_salt_forms(normalized: str) -> str:
     """Reduce a normalized name to its active element.
 
-    Drops salt and chelate words, and stereochemistry prefixes.
+    Drops salt and chelate words, preparation words, and stereochemistry prefixes.
 
     A stereo marker is only dropped when another token follows it. That guard is
     load-bearing: "vitamin d" would otherwise reduce to "vitamin", silently
@@ -99,7 +127,9 @@ def strip_salt_forms(normalized: str) -> str:
             continue
         without_stereo.append(token)
 
-    kept = [t for t in without_stereo if t not in SALT_FORMS]
+    kept = [
+        t for t in without_stereo if t not in SALT_FORMS and t not in PREPARATION_FORMS
+    ]
     if not kept:
         return normalized
     return " ".join(kept)

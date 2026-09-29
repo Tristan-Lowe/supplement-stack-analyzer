@@ -159,3 +159,42 @@ def test_index_path_agrees_with_database_path(session):
             assert from_db.matched_via == from_index.matched_via, probe
         if isinstance(from_db, Ambiguous):
             assert sorted(from_db.candidate_ids) == sorted(from_index.candidate_ids), probe
+
+
+# --- Guards against confident wrong answers ---
+
+
+def test_numbered_vitamin_does_not_fuzzy_match_its_neighbour(session):
+    """B5 is not B6. Edit distance scores them 90; the numbers must agree."""
+    get_or_create_entity(session, EntityKind.NUTRIENT, "Vitamin B6")
+    session.commit()
+
+    assert isinstance(resolve(session, "vitamin b5"), Unknown)
+    assert isinstance(resolve(session, "vitamin b6"), Resolved)
+
+
+def test_combination_line_does_not_collapse_to_one_nutrient(session):
+    get_or_create_entity(session, EntityKind.NUTRIENT, "Vitamin D3")
+    session.commit()
+
+    assert isinstance(resolve(session, "vitamin d3 + k2"), Unknown)
+
+
+def test_a_drug_never_wins_a_fuzzy_match(session):
+    """escitalopram scores 91 against citalopram. They are different drugs."""
+    get_or_create_entity(session, EntityKind.DRUG, "Citalopram")
+    session.commit()
+
+    assert isinstance(resolve(session, "escitalopram"), Unknown)
+    assert isinstance(resolve(session, "citalopram"), Resolved)
+
+
+def test_supplement_misspelling_still_fuzzy_matches(session):
+    turmeric = get_or_create_entity(session, EntityKind.HERBAL, "Turmeric")
+    session.commit()
+
+    result = resolve(session, "tumeric")
+
+    assert isinstance(result, Resolved)
+    assert result.entity_id == turmeric.id
+    assert result.matched_via == "fuzzy"
