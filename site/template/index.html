@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Stack Analyzer — check supplements and prescriptions together</title>
+  <meta name="description" content="Paste the supplements and prescriptions you take. Get interactions, duplicates, upper-limit breaches, and timing conflicts, each quoted from an FDA drug label or NIH fact sheet." />
+  <meta name="color-scheme" content="light" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&family=Geist+Mono:wght@400;500&display=swap" />
+  <link rel="stylesheet" href="/tokens.css" />
+  <link rel="stylesheet" href="/styles.css" />
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#stack">Skip to the checker</a>
+
+  <header class="nav">
+    <a class="wordmark" href="/" aria-label="Stack Analyzer, home">stack&thinsp;analyzer</a>
+    <a class="nav__link" href="#coverage">What it covers</a>
+  </header>
+
+  <main>
+    <section class="tool" aria-labelledby="tool-title">
+      <div class="tool__input">
+        <h1 id="tool-title" class="tool__title">Check your supplement stack.</h1>
+        <p class="tool__lede">List what you take — supplements and prescriptions together. Every finding quotes the FDA drug label or NIH fact sheet it comes from.</p>
+
+        <form id="stack-form" class="form" novalidate>
+          <div class="field">
+            <label class="field__label" for="stack">What you take</label>
+            <textarea id="stack" name="stack" class="field__input" rows="5" maxlength="2000"
+              spellcheck="false" autocomplete="off" aria-describedby="stack-help"
+              placeholder="Magnesium glycinate 400 mg&#10;Zoloft 50 mg&#10;Fish oil 1000 mg"></textarea>
+            <p id="stack-help" class="field__help">One per line, or separated by commas. Add doses to check upper limits.</p>
+          </div>
+
+          <div class="form__actions">
+            <button type="submit" class="btn btn--primary" id="submit">
+              <span class="btn__label">Check stack</span>
+              <span class="btn__spinner" aria-hidden="true"></span>
+            </button>
+            <button type="button" class="btn btn--quiet" id="clear">Clear</button>
+            <span class="kbd-hint" aria-hidden="true"><kbd>Ctrl</kbd> <kbd>Enter</kbd></span>
+          </div>
+
+          <div class="examples">
+            <p class="examples__label" id="examples-label">Or load an example</p>
+            <div class="examples__row" role="group" aria-labelledby="examples-label">
+              <button type="button" class="chip" data-example="Coumadin 5 mg&#10;Ginkgo biloba 120 mg&#10;St. John's Wort 300 mg&#10;CoQ10 200 mg">Blood thinner + herbs</button>
+              <button type="button" class="chip" data-example="Synthroid 100 mcg&#10;Calcium carbonate 600 mg&#10;Iron bisglycinate 25 mg&#10;Magnesium oxide 400 mg">Thyroid + minerals</button>
+              <button type="button" class="chip" data-example="Sertraline 50 mg&#10;St. John's Wort 300 mg&#10;L-tryptophan 500 mg&#10;Melatonin 3 mg">Antidepressant + sleep aids</button>
+              <button type="button" class="chip" data-example="Vitamin B6 60 mg&#10;B complex&#10;Vitamin B6 50 mg&#10;Zinc 50 mg&#10;Zinc picolinate 30 mg">Doubled-up vitamins</button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div class="tool__output">
+        <div id="results" class="results" aria-live="polite" aria-busy="false">
+          <div class="empty">
+            <h2 class="empty__title">Findings appear here.</h2>
+            <p class="empty__text">Four checks run on every stack:</p>
+            <dl class="checks">
+              <div class="checks__row">
+                <dt>Interactions</dt>
+                <dd>Pairs with a published interaction, ranked from contraindicated to minor.</dd>
+              </div>
+              <div class="checks__row">
+                <dt>Duplicates</dt>
+                <dd>The same nutrient arriving from more than one product.</dd>
+              </div>
+              <div class="checks__row">
+                <dt>Upper limits</dt>
+                <dd>Daily totals above the NIH tolerable upper intake level.</dd>
+              </div>
+              <div class="checks__row">
+                <dt>Timing</dt>
+                <dd>Pairs that need to be taken hours apart.</dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+        <p id="form-error" class="form-error" role="alert" hidden></p>
+      </div>
+    </section>
+
+    <section id="coverage" class="coverage" aria-labelledby="coverage-title">
+      <div class="coverage__text">
+        <h2 id="coverage-title" class="coverage__title">What it covers, and what it doesn’t.</h2>
+        <p>Interactions are extracted from primary sources, and every one carries the sentence it came from. A finding appears here only after it has been checked against that sentence. If a pair isn’t in the database, the checker says so — it never reports a stack as safe.</p>
+        <p>Coverage is still small. Prescription interactions come from the labels of {{DRUG_COUNT}} drugs so far: {{DRUG_LIST}}. A medication outside that list is recognised by name, but only interactions written on those {{DRUG_COUNT}} labels can be found.</p>
+        <p>Not handled yet: branded multivitamins by product name, drug classes such as “NSAIDs”, and vitamin D doses in IU against its limit in micrograms. The interactions were reviewed against their sources, but not by a pharmacist. Ask one before you change anything you take.</p>
+      </div>
+
+      <dl class="coverage__figures">
+        <div class="figure">
+          <dt>Published interactions</dt>
+          <dd class="figure__value">{{INTERACTIONS}}</dd>
+        </div>
+        <div class="figure">
+          <dt>Rated major or contraindicated</dt>
+          <dd class="figure__value">{{SEVERE}}</dd>
+        </div>
+        <div class="figure">
+          <dt>Supplements recognised</dt>
+          <dd class="figure__value">{{SUPPLEMENTS}}</dd>
+        </div>
+        <div class="figure">
+          <dt>Names and brand names matched</dt>
+          <dd class="figure__value">{{DRUG_NAMES}}</dd>
+        </div>
+        <div class="figure">
+          <dt>Nutrient upper limits</dt>
+          <dd class="figure__value">{{LIMITS}}</dd>
+        </div>
+      </dl>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <p>Educational information, not medical advice · Sources: openFDA, NIH Office of Dietary Supplements, RxNorm · <a class="foot__link" href="https://github.com/Tristan-Lowe/supplement-stack-analyzer" rel="noopener noreferrer">Source code</a></p>
+  </footer>
+</body>
+</html>

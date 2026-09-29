@@ -1,0 +1,67 @@
+/* Hallmark · genre: modern-minimal · macrostructure: Split Studio · theme: Coral (accent = ink, monochrome)
+ * tokens · anchor hue 60 (warm grey) · severity is the only chromatic signal
+ */
+:root {
+  /* Paper and ink — warm grey, never #fff / #000 */
+  --color-paper:    oklch(97.6% 0.005 70);
+  --color-paper-2:  oklch(95.2% 0.007 70);
+  --color-paper-3:  oklch(92.4% 0.008 70);
+  --color-rule:     oklch(88.5% 0.008 70);
+  --color-rule-2:   oklch(60% 0.012 65);   /* input borders: >= 3:1 on paper */
+  --color-muted:    oklch(48% 0.012 60);   /* secondary text: >= 4.5:1 on paper */
+  --color-ink-2:    oklch(31% 0.012 55);   /* body */
+  --color-ink:      oklch(19% 0.012 50);   /* headings, primary button */
+  --color-accent:     var(--color-ink);    /* modern-minimal: the accent IS ink */
+  --color-accent-ink: var(--color-paper);
+  --color-focus:    oklch(19% 0.012 50);
+
+  /* Severity — meaning, not decoration. Always paired with a text label. */
+  --color-sev-high:      oklch(53% 0.19 27);
+  --color-sev-mid:       oklch(64% 0.15 66);
+  --color-sev-low:       oklch(60% 0.012 65);
+  --color-error:         oklch(50% 0.19 27);
+
+  /* Type — Geist throughout; Geist Mono only for the wordmark and data tags */
+  --font-display: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-body:    "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-mono:    "Geist Mono", ui-monospace, "SFMono-Regular", monospace;
+
+  --text-xs:   0.75rem;
+  --text-sm:   0.875rem;
+  --text-base: 1rem;
+  --text-md:   1.125rem;
+  --text-lg:   1.375rem;
+  --text-xl:   1.75rem;
+  --text-display: clamp(2.125rem, 2.4vw + 1.35rem, 3.25rem);
+  --text-figure:  clamp(2rem, 2vw + 1.25rem, 2.75rem);
+
+  /* Space — 4 pt scale */
+  --space-3xs: 0.125rem;
+  --space-2xs: 0.25rem;
+  --space-xs:  0.5rem;
+  --space-sm:  0.75rem;
+  --space-md:  1rem;
+  --space-lg:  1.5rem;
+  --space-xl:  2.5rem;
+  --space-2xl: 4rem;
+  --space-3xl: 6rem;
+  --page-gutter: clamp(1rem, 4vw, 3rem);
+  --page-max: 78rem;
+
+  --radius-sm:   6px;
+  --radius-md:   10px;
+  --radius-pill: 999px;
+  --rule-w:      1px;
+  --control-h:   2.75rem;   /* 44 px: every button and input shares it */
+
+  /* Motion */
+  --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in:     cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 110ms;
+  --dur-short: 200ms;
+  --dur-long:  380ms;
+
+  --z-base:   1;
+  --z-sticky: 200;
+}

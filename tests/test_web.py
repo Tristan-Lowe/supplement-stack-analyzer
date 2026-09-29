@@ -131,3 +131,24 @@ def test_rate_limiter_blocks_after_limit_and_recovers():
     assert not limiter.allow("1.2.3.4", now=3)
     assert limiter.allow("5.6.7.8", now=3)
     assert limiter.allow("1.2.3.4", now=70)
+
+
+def test_snapshot_is_visible_from_another_thread(session, tmp_path):
+    """Requests arrive on worker threads; each must see the loaded graph."""
+    import threading
+
+    seed(session)
+    path = tmp_path / "graph.json"
+    path.write_text(json.dumps(export_snapshot(session)), encoding="utf-8")
+    factory = load_snapshot(path)
+    out = {}
+
+    def worker():
+        with factory() as s:
+            out["result"] = post(s, "Coumadin, St Johns Wort")
+
+    t = threading.Thread(target=worker)
+    t.start()
+    t.join()
+    assert out["result"][0] == 200
+    assert out["result"][1]["identified"] == 2

@@ -69,9 +69,10 @@ def _summarize(
         lead = lead.rstrip(".") + f", from {identified_entries} {entry_word} entered."
 
     if unresolved:
-        items = "s" if len(unresolved) != 1 else ""
+        one = len(unresolved) == 1
         lead += (
-            f" {len(unresolved)} item{items} could not be identified and were not checked."
+            f" {len(unresolved)} item{'' if one else 's'} could not be identified and "
+            f"{'was' if one else 'were'} not checked."
         )
     return lead
 

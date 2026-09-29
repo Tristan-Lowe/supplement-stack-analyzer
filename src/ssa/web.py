@@ -24,6 +24,7 @@ from urllib.parse import urlparse
 
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session, selectinload, sessionmaker
+from sqlalchemy.pool import StaticPool
 
 from ssa.analyze.engine import analyze_stack
 from ssa.analyze.findings import FindingKind
@@ -122,7 +123,15 @@ def load_snapshot(path: str | Path) -> sessionmaker:
     if data.get("version") != SNAPSHOT_VERSION:
         raise ValueError(f"unsupported snapshot version {data.get('version')!r}")
 
-    engine = create_engine("sqlite+pysqlite:///:memory:", future=True)
+    # An in-memory SQLite database lives inside one connection. The default pool
+    # hands each thread its own connection, so a request on any other thread would
+    # see an empty database. One shared connection; callers serialise access.
+    engine = create_engine(
+        "sqlite+pysqlite:///:memory:",
+        future=True,
+        poolclass=StaticPool,
+        connect_args={"check_same_thread": False},
+    )
     Base.metadata.create_all(engine)
     factory = sessionmaker(bind=engine, future=True, expire_on_commit=False)
 

@@ -121,3 +121,8 @@ def test_disclaimer_is_always_present(session):
     report = analyze_stack(session, "Calcium 500mg")
 
     assert "not medical advice" in report.disclaimer.lower()
+
+
+def test_summary_verb_agrees_with_one_unidentified_item(session):
+    report = analyze_stack(session, "flibbertigibbet")
+    assert "1 item could not be identified and was not checked." in report.summary
