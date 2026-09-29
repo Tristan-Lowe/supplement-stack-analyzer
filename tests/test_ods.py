@@ -24,3 +24,26 @@ def test_load_upper_limits_is_idempotent(session):
 
     assert second == 0
     assert len(list(session.scalars(select(UpperLimit)).all())) == first
+
+
+def test_malformed_row_is_refused(session, tmp_path):
+    import pytest
+
+    path = tmp_path / "ul.csv"
+    path.write_text(
+        "canonical_name,amount,unit,population,basis,source_url\n"
+        "Vitamin D3,100,mcg,adult,all forms, not D3 alone,https://ods.example/\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="unquoted comma"):
+        load_upper_limits(session, path)
+
+
+def test_shipped_upper_limits_all_cite_a_url(session):
+    from ssa.models import UpperLimit
+
+    load_upper_limits(session, "data/upper_limits.csv")
+
+    for row in session.query(UpperLimit).all():
+        assert row.source_url.startswith("https://"), row.source_url

@@ -16,12 +16,21 @@ from ssa.registry import add_alias, get_or_create_entity
 def load_upper_limits(session: Session, csv_path: str | Path) -> int:
     """Load upper limits into the database. Returns the number of new rows created.
 
-    Idempotent: re-running adds nothing and returns 0.
+    Idempotent: re-running adds nothing and returns 0. A stored row whose basis or
+    source URL no longer matches the CSV is repaired in place.
+
+    Raises ValueError on a malformed row. An unquoted comma in `basis` once shifted
+    half a sentence into `source_url`, and the product printed it as a citation.
     """
     created = 0
     rows = csv.DictReader(Path(csv_path).read_text(encoding="utf-8").splitlines())
 
     for row in rows:
+        if row.get(None) or not row["source_url"].startswith("https://"):
+            raise ValueError(
+                f"malformed upper-limit row for {row['canonical_name']!r}: "
+                "check for an unquoted comma"
+            )
         entity = get_or_create_entity(session, EntityKind.NUTRIENT, row["canonical_name"])
         existing = session.scalars(
             select(UpperLimit).where(
@@ -30,6 +39,8 @@ def load_upper_limits(session: Session, csv_path: str | Path) -> int:
             )
         ).one_or_none()
         if existing is not None:
+            existing.basis = row["basis"]
+            existing.source_url = row["source_url"]
             continue
 
         session.add(
