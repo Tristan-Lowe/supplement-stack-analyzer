@@ -1,9 +1,11 @@
 # Supplement Stack Analyzer
 
+[![ci](https://github.com/Tristan-Lowe/supplement-stack-analyzer/actions/workflows/ci.yml/badge.svg)](https://github.com/Tristan-Lowe/supplement-stack-analyzer/actions/workflows/ci.yml)
+
 Finds interactions, redundancies, upper-limit breaches, and timing conflicts across
 everything a person takes — supplements **and** prescriptions.
 
-**Try it:** [supplement-stack-analyzer-opal.vercel.app](https://supplement-stack-analyzer-opal.vercel.app) — paste a stack, get cited findings.
+**Try it:** [stackanalyzer.vercel.app](https://stackanalyzer.vercel.app) — paste a stack, get cited findings.
 
 Most people who take supplements take several at once, often alongside medication,
 with no check on whether those compounds fight each other. The failure modes are

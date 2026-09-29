@@ -1,0 +1,10 @@
+{
+  "interaction_recall": {
+    "value": 0.136,
+    "found": 6,
+    "total": 44,
+    "date": "2026-09-29",
+    "note": "First measurement. 23 misses have no edge (labels not yet ingested), 15 are unrecognised names."
+  },
+  "resolution_accuracy": { "value": 1.0, "wrong": 0, "total": 143, "date": "2026-09-29" }
+}

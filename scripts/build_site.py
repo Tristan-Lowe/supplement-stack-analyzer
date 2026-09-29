@@ -73,6 +73,7 @@ def main() -> int:
         "DRUG_NAMES": len(snapshot["aliases"]),
         "LIMITS": len(snapshot["upper_limits"]),
         "DRUG_COUNT": len(drugs),
+        "DRUGS_KNOWN": sum(k == "DRUG" for k in kinds),
         "DRUG_LIST": ", ".join(d.capitalize() for d in drugs),
     }
     template = (SITE / "template" / "index.html").read_text(encoding="utf-8")
