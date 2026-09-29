@@ -25,7 +25,7 @@ def test_strip_salt_forms_removes_known_salts():
 
 
 def test_strip_salt_forms_leaves_unknown_words():
-    assert strip_salt_forms("ashwagandha gummies") == "ashwagandha gummies"
+    assert strip_salt_forms("ashwagandha tea") == "ashwagandha tea"
 
 
 def test_strip_salt_forms_drops_stereochemistry_prefixes():
@@ -57,3 +57,8 @@ def test_preparation_words_strip_but_oil_and_seed_do_not():
     assert strip_salt_forms("ginkgo biloba extract") == "ginkgo biloba"
     assert strip_salt_forms("fish oil") == "fish oil"
     assert strip_salt_forms("grape seed extract") == "grape seed"
+
+
+def test_dose_forms_strip():
+    assert strip_salt_forms(normalize_name("sertraline hydrochloride capsules")) == "sertraline"
+    assert strip_salt_forms("calcium supplements") == "calcium"

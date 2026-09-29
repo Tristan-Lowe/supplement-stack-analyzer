@@ -12,14 +12,17 @@ import logging
 from collections.abc import Callable
 
 import anthropic
+from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from ssa.bootstrap import bootstrap_entity
 from ssa.extract.gates import InvalidDirectionError, UnverifiedSpanError, merge_triple
 from ssa.extract.llm import extract_triples
+from ssa.extract.schema import CandidateTriple
 from ssa.extract.verify import collapse_for_comparison, quarantine, verify_span
-from ssa.resolver import Resolved, resolve
+from ssa.models import QuarantinedTriple
+from ssa.resolver import Resolved, build_alias_index, resolve
 
 logger = logging.getLogger(__name__)
 
@@ -165,4 +168,55 @@ def _store_triples(
         stats["quarantined"],
         stats["bootstrapped"],
     )
+    return stats
+
+
+def replay_quarantine(session: Session) -> dict[str, int]:
+    """Retry triples quarantined only because a compound did not resolve.
+
+    Their spans were verified before quarantine, so nothing is re-extracted and
+    nothing is paid for. The registry improves over time (curated seeds, brand
+    aliases), and a claim should not stay lost because the registry was younger
+    than the document.
+
+    Offline by design: no RxNorm bootstrap. A replay binds only names the
+    registry already recognises. Recovered rows go through merge_triple like any
+    other claim, so moderate-or-above ones land in the review queue. Rows that
+    still do not resolve stay quarantined.
+    """
+    stats = {"examined": 0, "recovered": 0, "still_unresolved": 0, "self_pairs": 0}
+    rows = session.scalars(
+        select(QuarantinedTriple).where(QuarantinedTriple.reason == "unresolved_compound")
+    ).all()
+    index = build_alias_index(session)
+
+    for row in rows:
+        stats["examined"] += 1
+        triple = CandidateTriple.model_validate(row.payload)
+        a = resolve(session, triple.compound_a, alias_index=index)
+        b = resolve(session, triple.compound_b, alias_index=index)
+        if not isinstance(a, Resolved) or not isinstance(b, Resolved):
+            stats["still_unresolved"] += 1
+            continue
+        if a.entity_id == b.entity_id:
+            stats["self_pairs"] += 1
+            continue
+
+        merge_triple(
+            session,
+            entity_a_id=a.entity_id,
+            entity_b_id=b.entity_id,
+            mechanism=triple.mechanism,
+            direction=triple.direction,
+            severity=triple.severity,
+            evidence_grade=triple.evidence_grade,
+            span=triple.span,
+            source="openfda",
+            source_url=row.detail,
+            source_text=triple.span,  # verified against the label before quarantine
+        )
+        session.delete(row)
+        session.commit()
+        stats["recovered"] += 1
+
     return stats

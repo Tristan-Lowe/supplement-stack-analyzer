@@ -25,7 +25,7 @@ from ssa.models import (
     Severity,
     utcnow,
 )
-from ssa.pipeline import content_key, ingest_section
+from ssa.pipeline import content_key, ingest_section, replay_quarantine
 from ssa.registry import find_nutrient_duplicates, merge_entities, reclassify_entities
 from ssa.review import approve, list_pending, reject
 
@@ -176,6 +176,21 @@ def cmd_enrich(args: argparse.Namespace) -> int:
         session.close()
 
 
+def cmd_replay(args: argparse.Namespace) -> int:
+    """Retry quarantined triples against the current registry. Offline and free."""
+    session = _session()
+    try:
+        stats = replay_quarantine(session)
+        print(
+            f"Examined {stats['examined']}: recovered {stats['recovered']}, "
+            f"still unresolved {stats['still_unresolved']}, "
+            f"self-pairs skipped {stats['self_pairs']}."
+        )
+        return 0
+    finally:
+        session.close()
+
+
 def cmd_analyze(args: argparse.Namespace) -> int:
     session = _session()
     try:
@@ -297,6 +312,9 @@ def main() -> int:
     enrich = subparsers.add_parser("enrich", help="Add RxNorm brand names and salt forms")
     enrich.add_argument("--all", action="store_true", help="re-check already-enriched drugs")
     enrich.set_defaults(func=cmd_enrich)
+
+    replay = subparsers.add_parser("replay", help="Retry quarantined triples (offline)")
+    replay.set_defaults(func=cmd_replay)
 
     ingest = subparsers.add_parser("ingest", help="Ingest openFDA label sections for a drug")
     ingest.add_argument("drug")

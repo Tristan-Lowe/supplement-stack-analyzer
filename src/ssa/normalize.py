@@ -57,8 +57,9 @@ SALT_FORMS: frozenset[str] = frozenset(
     }
 )
 
-# Preparation words that describe how a botanical is sold, not what it is. An
-# extract or root of an herb carries that herb's interactions.
+# Preparation and dose-form words that describe how a compound is sold, not what
+# it is. An extract or root of an herb carries that herb's interactions, and a
+# capsule of sertraline is sertraline.
 #
 # "oil" and "seed" are deliberately absent: "fish oil" is not fish, and "grape
 # seed extract" is not grapes.
@@ -77,6 +78,18 @@ PREPARATION_FORMS: frozenset[str] = frozenset(
         "berries",
         "concentrate",
         "supercritical",
+        # Dose forms and packaging say how a compound is taken, not what it is.
+        "tablet",
+        "tablets",
+        "capsule",
+        "capsules",
+        "caplet",
+        "caplets",
+        "softgel",
+        "softgels",
+        "chewable",
+        "supplement",
+        "supplements",
     }
 )
 

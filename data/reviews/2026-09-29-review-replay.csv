@@ -1,0 +1,8 @@
+id,action,severity,evidence,direction,affected,note
+118,approve,moderate,,decreases_effect_of_b,Warfarin,CoQ10 is structurally similar to vitamin K and may lower INR; recovered from quarantine by replay
+119,approve,moderate,,decreases_absorption_of_b,Alendronate,Take alendronate at least 30 min before calcium; recovered by replay
+120,approve,contraindicated,,increases_toxicity_risk,,Label: contraindicated with MAOIs including linezolid
+121,approve,contraindicated,,increases_toxicity_risk,,Label: contraindicated with MAOIs including IV methylene blue
+122,approve,major,,increases_toxicity_risk,,Serotonin syndrome risk
+123,approve,major,,increases_toxicity_risk,,Serotonin syndrome risk; tryptophan is sold as a supplement
+124,approve,major,,increases_toxicity_risk,,Serotonin syndrome risk; St. John's Wort is serotonergic

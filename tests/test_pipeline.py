@@ -139,3 +139,33 @@ def test_no_database_session_is_held_during_extraction(session):
     ingest_section(factory, client, SOURCE, "openfda", "https://example.test/1")
 
     assert not factory_called_during_extraction
+
+
+def test_replay_recovers_a_triple_once_the_registry_knows_both_names(session):
+    from ssa.extract.schema import CandidateTriple
+    from ssa.extract.verify import quarantine
+    from ssa.models import EntityKind, Interaction, QuarantinedTriple
+    from ssa.pipeline import replay_quarantine
+    from ssa.registry import get_or_create_entity
+
+    triple = CandidateTriple(
+        compound_a="co-enzyme Q 10", compound_b="warfarin", mechanism="m",
+        direction="decreases_effect_of_b", severity="moderate", evidence_grade="C",
+        span="some botanicals may decrease the effects of warfarin (e.g., co-enzyme Q 10)",
+    )
+    quarantine(session, triple, reason="unresolved_compound", detail="https://label/1")
+    unrelated = triple.model_copy(update={"compound_a": "flibbertigibbet"})
+    quarantine(session, unrelated, reason="unresolved_compound", detail="https://label/1")
+
+    warfarin = get_or_create_entity(session, EntityKind.DRUG, "Warfarin")
+    coq10 = get_or_create_entity(session, EntityKind.NUTRIENT, "Coenzyme Q10")
+    from ssa.registry import add_alias
+    add_alias(session, coq10, "co-enzyme Q 10", source="test")
+    session.commit()
+
+    stats = replay_quarantine(session)
+
+    assert stats == {"examined": 2, "recovered": 1, "still_unresolved": 1, "self_pairs": 0}
+    row = session.query(Interaction).one()
+    assert row.affected_entity_id == warfarin.id
+    assert session.query(QuarantinedTriple).count() == 1

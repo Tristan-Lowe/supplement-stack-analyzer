@@ -1,0 +1,118 @@
+id,action,severity,evidence,direction,affected,note
+1,approve,moderate,,decreases_absorption_of_b,Levothyroxine,Chelation; manageable by separating doses 4 h
+2,approve,moderate,,decreases_absorption_of_b,Levothyroxine,Complex formation; manageable by separating doses 4 h
+3,approve,moderate,,decreases_absorption_of_b,Levothyroxine,Label advises thyroid-function monitoring
+4,approve,moderate,,decreases_absorption_of_b,Levothyroxine,Binding; separate doses 4 h
+5,approve,moderate,,decreases_absorption_of_b,Levothyroxine,Binding; separate doses 4 h
+6,approve,moderate,,decreases_absorption_of_b,Levothyroxine,Binding; separate doses 4 h
+7,approve,moderate,,decreases_absorption_of_b,Levothyroxine,Binding; separate doses 4 h
+8,approve,moderate,,decreases_absorption_of_b,Levothyroxine,pH effect and binding; separate doses
+9,approve,minor,,,,Lab-value (TBG) change; patient stays euthyroid
+10,approve,minor,,,,Lab-value (TBG) change; patient stays euthyroid
+11,approve,minor,,,,Lab-value (TBG) change; patient stays euthyroid
+12,approve,minor,,,,Lab-value (TBG) change; patient stays euthyroid
+13,approve,minor,,,,Lab-value (TBG) change; patient stays euthyroid
+14,approve,minor,,,,Lab-value (TBG) change; patient stays euthyroid
+15,approve,minor,,,,Lab-value (TBG) change; patient stays euthyroid
+16,approve,minor,,,,Protein-binding displacement; lab-value change
+17,reject,,,,,"Class term 'hydantoins' bound to the parent chemical hydantoin, which no one takes; phenytoin is covered by #18"
+18,approve,moderate,,decreases_effect_of_b,Levothyroxine,Binding displacement plus enzyme induction; dose may need adjusting
+19,approve,moderate,,decreases_effect_of_b,Levothyroxine,Binding displacement plus enzyme induction; dose may need adjusting
+20,approve,moderate,,decreases_effect_of_b,Levothyroxine,UGT induction; dose adjustment rather than avoidance
+21,approve,moderate,,decreases_effect_of_b,Levothyroxine,Enzyme induction; dose adjustment rather than avoidance
+22,approve,moderate,,,,T4-to-T3 conversion inhibited; amiodarone also has independent thyroid effects
+23,approve,moderate,,decreases_effect_of_b,Levothyroxine,Stored direction pointed at sertraline; the label says levothyroxine requirement rises
+24,approve,major,,increases_toxicity_risk,,Marked hypertension and tachycardia
+25,approve,moderate,,decreases_absorption_of_b,Levothyroxine,Food binding; entity corrected from an allergen extract to the food
+26,approve,minor,B,decreases_absorption_of_b,Levothyroxine,Delayed absorption with a small bioavailability change
+27,approve,moderate,,decreases_absorption_of_b,Levothyroxine,Ion-exchange resin binding; separate doses 4 h
+28,approve,minor,,,,Acute lab-value change at high IV doses
+29,approve,minor,,,,T3/T4 change at >160 mg/day with normal TSH; patient stays euthyroid
+30,approve,moderate,,decreases_effect_of_b,Levothyroxine,Monitor TSH; dose adjustment
+31,approve,moderate,,decreases_effect_of_b,Levothyroxine,Raised TBG commonly raises the levothyroxine requirement in treated patients
+32,approve,moderate,,decreases_absorption_of_b,Levothyroxine,Phosphate binder; separate doses 4 h
+33,approve,moderate,C,decreases_absorption_of_b,Levothyroxine,Quote names 'antacids'; aluminum hydroxide is one. Graded C for class extrapolation
+34,approve,moderate,C,decreases_absorption_of_b,Levothyroxine,Quote names 'antacids'; applies to magnesium hydroxide and oxide. Graded C for class extrapolation to all magnesium forms
+35,approve,minor,,unclear,,T3 lowered by large glucocorticoid doses; lab-value change
+36,approve,major,C,increases_toxicity_risk,,Label warns of arrhythmia and CNS stimulation; the mechanism is stated as 'possibly'
+37,approve,major,C,increases_toxicity_risk,,Label warns of arrhythmia and CNS stimulation; the mechanism is stated as 'possibly'
+38,reject,,,,,"Quote names 'antacids'; simethicone is not an antacid and the quote does not name it. Re-extract from the label's table if wanted"
+39,approve,moderate,,increases_toxicity_risk,,Additive bleeding risk on a narrow-therapeutic-index anticoagulant
+40,approve,moderate,,increases_toxicity_risk,,Additive bleeding risk on a narrow-therapeutic-index anticoagulant
+41,approve,major,,decreases_effect_of_b,Warfarin,CYP induction can drop INR to subtherapeutic; clot risk
+42,approve,moderate,,decreases_effect_of_b,Warfarin,May reduce anticoagulant effect; monitor INR
+43,approve,moderate,,,,CYP450 interaction on a narrow-therapeutic-index drug; monitor INR
+44,approve,moderate,,,,CYP450 interaction on a narrow-therapeutic-index drug; monitor INR
+45,approve,moderate,,,,CYP450 interaction on a narrow-therapeutic-index drug; monitor INR
+46,approve,major,,decreases_effect_of_b,Warfarin,Vitamin K directly antagonises warfarin; supplements change INR. Keep intake consistent
+47,approve,moderate,,decreases_effect_of_b,Atorvastatin,Give simultaneously; delayed dosing lowers atorvastatin levels
+48,approve,moderate,,increases_effect_of_b,Digoxin,Digoxin levels rise modestly; monitor
+49,approve,major,,increases_toxicity_risk,,Label says risk is increased; it does not use 'contraindicated'
+50,approve,major,,increases_toxicity_risk,,Label says risk is increased; it does not use 'contraindicated'
+51,approve,major,,increases_toxicity_risk,,Rhabdomyolysis risk; atorvastatin dose limits apply
+52,approve,major,,increases_toxicity_risk,,Rhabdomyolysis risk; atorvastatin dose limits apply
+53,approve,major,,increases_toxicity_risk,,Rhabdomyolysis risk; atorvastatin dose limits apply
+54,approve,major,,increases_toxicity_risk,,Rhabdomyolysis risk; atorvastatin dose limits apply
+55,approve,major,,increases_toxicity_risk,,Rhabdomyolysis risk; atorvastatin dose limits apply
+56,approve,major,,increases_toxicity_risk,,Rhabdomyolysis risk; atorvastatin dose limits apply
+57,approve,major,,increases_toxicity_risk,,Rhabdomyolysis risk
+58,approve,major,,increases_toxicity_risk,,Rhabdomyolysis risk
+59,approve,major,,increases_toxicity_risk,,Rhabdomyolysis risk
+60,approve,major,,increases_toxicity_risk,,Rhabdomyolysis risk
+61,approve,moderate,,increases_toxicity_risk,,Applies at lipid-modifying doses above 1 g/day niacin; typical supplement doses are lower
+62,approve,major,,increases_toxicity_risk,,Rhabdomyolysis cases reported
+63,approve,moderate,,increases_toxicity_risk,,Only with large intake (>1.2 L/day)
+64,approve,moderate,,increases_effect_of_b,Norethindrone,Raised contraceptive hormone levels
+65,approve,moderate,,increases_effect_of_b,Ethinyl Estradiol,Raised contraceptive hormone levels
+66,approve,minor,,increases_effect_of_b,Atorvastatin,18% AUC rise; label calls it not clinically meaningful
+67,approve,moderate,,additive_effect,,Additive hypotension; monitor blood pressure
+68,approve,moderate,,increases_effect_of_b,Cyclosporine,Monitor cyclosporine levels
+69,approve,moderate,,increases_effect_of_b,Tacrolimus,Monitor tacrolimus levels
+70,approve,contraindicated,,decreases_effect_of_b,Rilpivirine,Loss of antiviral effect and resistance; rilpivirine labeling contraindicates PPIs
+71,approve,major,,decreases_effect_of_b,Atazanavir,Loss of antiviral effect and resistance
+72,approve,major,,decreases_effect_of_b,Nelfinavir,Loss of antiviral effect and resistance
+73,approve,moderate,,increases_effect_of_b,Saquinavir,Raised saquinavir exposure; monitor for toxicity
+74,approve,major,,increases_effect_of_b,Warfarin,Label reports INR rises and bleeding
+75,approve,major,C,increases_toxicity_risk,,Mainly at high methotrexate doses
+76,approve,major,,decreases_effect_of_b,Clopidogrel,Reduced antiplatelet effect; avoid the combination
+77,approve,major,,increases_toxicity_risk,,QT prolongation; citalopram dose cap applies with CYP2C19 inhibitors
+78,approve,moderate,,increases_effect_of_b,Cilostazol,Raised active metabolite; cilostazol dose reduction advised
+79,approve,moderate,C,increases_effect_of_b,Phenytoin,Monitor phenytoin levels
+80,approve,moderate,,increases_effect_of_b,Diazepam,Prolonged elimination
+81,approve,moderate,C,increases_effect_of_b,Digoxin,Monitor for digoxin toxicity
+82,approve,moderate,,decreases_effect_of_b,Mycophenolate Mofetil,Reduced mycophenolic acid exposure
+83,approve,moderate,C,increases_effect_of_b,Tacrolimus,Monitor tacrolimus levels
+84,approve,major,,decreases_effect_of_b,Omeprazole,Strong inducer; avoid the combination
+85,approve,major,,decreases_effect_of_b,Omeprazole,Strong inducer; avoid the combination
+86,approve,moderate,C,decreases_absorption_of_b,Ketoconazole,pH-dependent absorption
+87,approve,major,C,decreases_absorption_of_b,Erlotinib,pH-dependent absorption; erlotinib labeling advises avoiding PPIs
+88,approve,moderate,C,increases_effect_of_b,Cyclosporine,Prolonged elimination; monitor levels
+89,approve,moderate,C,increases_effect_of_b,Disulfiram,Prolonged elimination
+90,approve,moderate,,increases_effect_of_b,Omeprazole,Raised omeprazole levels
+91,approve,contraindicated,,increases_effect_of_b,Tizanidine,Label: contraindicated
+92,approve,major,,increases_effect_of_b,Theophylline,Serious and fatal reactions reported
+93,approve,moderate,,,,Phenytoin levels altered in both directions; monitor
+94,approve,moderate,,increases_toxicity_risk,,Transient creatinine rise; monitor renal function
+95,approve,major,,increases_effect_of_b,Methotrexate,Raised methotrexate levels; toxicity risk
+96,approve,moderate,,increases_effect_of_b,Ropinirole,Monitor; adjust dose
+97,approve,moderate,,increases_effect_of_b,Clozapine,Monitor; adjust dose
+98,approve,moderate,,increases_effect_of_b,Sildenafil,Two-fold exposure
+99,approve,major,,increases_effect_of_b,Duloxetine,Five-fold exposure; avoid
+100,approve,moderate,,increases_effect_of_b,Caffeine,Reduced caffeine clearance; relevant to pre-workout and caffeine supplements
+101,approve,major,,increases_effect_of_b,Zolpidem,Label: concurrent use not recommended
+102,approve,moderate,,increases_effect_of_b,Ciprofloxacin,Stored direction pointed at probenecid; probenecid raises ciprofloxacin levels
+103,approve,moderate,,decreases_absorption_of_b,Ciprofloxacin,Multivalent cations; separate doses
+104,approve,moderate,,decreases_absorption_of_b,Ciprofloxacin,Buffered formulation cations; separate doses
+105,approve,moderate,,increases_toxicity_risk,,More upper-GI adverse events above 10 mg/day alendronate
+106,approve,minor,,decreases_absorption_of_b,Alendronate,Slight bioavailability decrease
+107,approve,major,,increases_toxicity_risk,,Protein-binding shift plus SSRI bleeding risk on an anticoagulant; monitor INR
+108,approve,moderate,,increases_effect_of_b,Sertraline,Raised sertraline exposure (AUC +50%)
+109,approve,minor,,increases_effect_of_b,Diazepam,32% clearance decrease; clinical significance unknown
+110,approve,theoretical,,,,No significant change in the trial; monitoring suggested as a precaution
+111,approve,contraindicated,,increases_effect_of_b,Pimozide,Narrow therapeutic index; sertraline labeling contraindicates pimozide
+112,approve,minor,,,,Label reports no clinically important inhibition; had been escalated to major after auto-publishing
+113,approve,theoretical,D,,,Not evaluated in clinical trials
+114,approve,moderate,,decreases_effect_of_b,Cisapride,AUC reduced by about 35%
+115,approve,major,C,increases_toxicity_risk,,Serotonergic toxicity; rare postmarketing reports
+116,approve,minor,,increases_effect_of_b,Tolbutamide,16% clearance decrease
+117,approve,major,,increases_toxicity_risk,,Additive upper-GI bleeding risk
