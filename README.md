@@ -121,9 +121,40 @@ still accrues so the call can be revisited deliberately.
 
 ## Status — measured, not claimed
 
-**The system runs end to end on real data.** One FDA drug ingested (levothyroxine,
-4 label sections): **54 entities, 38 interactions, 60 evidence rows** with live
-citations. 137 tests.
+**The system runs end to end on real data.** Six FDA drugs ingested (levothyroxine,
+warfarin, atorvastatin, omeprazole, ciprofloxacin, alendronate) plus a curated
+supplement registry: **149 entities, 631 aliases, 124 interactions, 214 evidence
+rows**, every one with a live citation. 193 tests.
+
+| Graph, 2026-09-29 | |
+|---|---|
+| Published | 122 (5 contraindicated, 38 major, 63 moderate, 15 minor, 1 theoretical) |
+| Rejected at review | 2 |
+| With a supplement or food on one side | 20 (warfarin + vitamin K / ginkgo / garlic / CoQ10 / St John's Wort, sertraline + St John's Wort / tryptophan, calcium + alendronate, ...) |
+| Quarantined, not guessed | 266, mostly drug-class terms ("NSAIDs", "CYP3A4 inhibitors") |
+
+**Who reviewed it.** Every interaction was reviewed against its verbatim FDA quote by
+Claude, acting on the author's delegation. That is recorded on each row
+(`reviewed_by`, `reviewed_at`, `review_note`, and the original value of any corrected
+field), and the decision files are in [`data/reviews/`](data/reviews/). It is a careful
+review, **not a clinical one**. A pharmacist review of the major and contraindicated
+rows comes before any clinical use.
+
+### Entity resolution, measured on text we did not write
+
+| Run | Result |
+|---|---|
+| Hand-written gold set, 143 cases incl. 22 must-not-resolve | 100%, 0 wrong |
+| Held-out: 105 ingredient names from real NIH DSLD labels | 50 resolved, **0 wrong**, ~86% recall on names the registry holds |
+
+The gold set was expanded from 21 to 139 cases *before* the resolver was changed, and
+scored 38.8% with 11 wrong answers at that point. The held-out run matters more than the
+100%, because it caught what the gold set missed: `Vitamin B1` resolving to vitamin K
+(fuzzy score 90 against "vitamin k1"). Numbers and one- or two-letter tokens are now
+identity, never spelling. A drug can never win a fuzzy match (escitalopram scored 91
+against citalopram), and a brand is accepted only if its ingredients are exactly one
+drug (RxNorm lists Caduet, which is atorvastatin plus amlodipine, as an atorvastatin
+brand). Details: [`evals/HELDOUT.md`](evals/HELDOUT.md).
 
 ### What the first real ingestion measured
 
@@ -159,13 +190,12 @@ a Postgres lookup with no model in it.
 
 ### Not built yet
 
-Recall against a labelled gold set — the metric that would justify a coverage
-claim — needs a 300–500 pair hand-labelled set that does not exist. **No recall
-number is claimed here, and none should be inferred.** Also outstanding: branded
-product expansion in the request path, an LLM parser for messy input, drug-class
-and food entities (16 label terms remain unresolvable because they name classes
-like "proton pump inhibitors" or foods like "soybean flour"), a web UI, and any
-deployment.
+Recall against an independent, labelled interaction gold set is the metric that would
+justify a coverage claim, and that set does not exist yet. **No recall number is claimed
+here, and none should be inferred.** Also outstanding: exact vitamin D IU-to-mcg
+conversion for the upper-limit check, drug classes as entities (they account for most
+of the quarantine), branded product expansion in the request path, an LLM parser for
+messy input, a web UI, and any deployment.
 
 ## Setup
 
@@ -183,9 +213,12 @@ alembic upgrade head
 
 ```bash
 ssa init-db                                      # create schema (or: alembic upgrade head)
-ssa seed                                         # load NIH ODS upper intake limits
+ssa seed                                         # upper limits, synonyms, curated supplements
 ssa ingest levothyroxine                         # extract interactions from openFDA labels
-ssa analyze "Vitamin B6 60mg, Vitamin B6 60mg"   # analyze a stack
+ssa enrich                                       # add RxNorm brand and salt names
+ssa replay                                       # retry quarantined triples, offline
+ssa review list                                  # interactions awaiting a decision
+ssa analyze "Zoloft 50mg, St Johns Wort 300mg"   # analyze a stack
 ```
 
 `ssa ingest` calls the Anthropic API and costs money. Nothing else does.
@@ -214,7 +247,7 @@ and does not replace a pharmacist or physician.
 pytest -v && ruff check src tests evals
 ```
 
-137 tests. No test makes a network call or an API call — HTTP is mocked with
+193 tests. No test makes a network call or an API call — HTTP is mocked with
 `responses`, the Anthropic client with `MagicMock`. Tests run against in-memory
 SQLite; production is Postgres, and all column types are kept portable.
 
@@ -223,7 +256,7 @@ SQLite; production is Postgres, and all column types are kept portable.
 ## Stack
 
 Python 3.11+ · SQLAlchemy 2 · Alembic · Postgres (Neon) · Pydantic v2 ·
-Anthropic SDK (`claude-opus-5`) · pytest · ruff
+Anthropic SDK (`claude-haiku-4-5` for extraction) · pytest · ruff
 
 ---
 
