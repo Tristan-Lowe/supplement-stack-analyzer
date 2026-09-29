@@ -4,13 +4,17 @@ from __future__ import annotations
 
 import argparse
 
+from sqlalchemy import select
+
 from ssa.analyze.engine import analyze_stack
+from ssa.bootstrap import enrich_drug_aliases
 from ssa.config import Settings
 from ssa.connectors.ods import load_nutrient_synonyms, load_upper_limits
 from ssa.connectors.openfda import fetch_interaction_sections
+from ssa.curated import load_supplement_registry, renormalize_aliases
 from ssa.db import make_engine, make_session_factory
 from ssa.extract.llm import make_client
-from ssa.models import Base, Entity, PipelineRun, utcnow
+from ssa.models import Base, Entity, EntityAlias, EntityKind, PipelineRun, utcnow
 from ssa.pipeline import content_key, ingest_section
 from ssa.registry import find_nutrient_duplicates, merge_entities, reclassify_entities
 from ssa.review import approve, list_pending, reject
@@ -35,10 +39,19 @@ def cmd_init_db(args: argparse.Namespace) -> int:
 def cmd_seed(args: argparse.Namespace) -> int:
     session = _session()
     try:
+        repaired = renormalize_aliases(session)
+        print(f"Re-normalized {repaired} stored alias key(s).")
         created = load_upper_limits(session, args.csv)
         print(f"Loaded {created} new upper limits.")
         aliases = load_nutrient_synonyms(session, args.synonyms)
         print(f"Loaded {aliases} new nutrient synonyms.")
+        report = load_supplement_registry(session, args.registry)
+        print(
+            f"Curated registry: {report.created} new entities, "
+            f"{report.aliases} new aliases, {len(report.merged)} merged."
+        )
+        for old, new in report.merged:
+            print(f"  merged {old} -> {new}")
     finally:
         session.close()
     return 0
@@ -119,6 +132,38 @@ def cmd_ingest(args: argparse.Namespace) -> int:
         f"{totals['stored']} stored, {totals['quarantined']} quarantined."
     )
     return 0
+
+
+def cmd_enrich(args: argparse.Namespace) -> int:
+    """Add RxNorm brand names and salt forms to drugs that do not have them yet.
+
+    Network I/O against RxNorm; ingestion-time only. Drugs already enriched are
+    skipped unless --all is given, so re-running after an ingest is cheap.
+    """
+    session = _session()
+    try:
+        enriched = set(
+            session.scalars(
+                select(EntityAlias.entity_id).where(
+                    EntityAlias.source.in_(("rxnorm_brand", "rxnorm_salt"))
+                )
+            ).all()
+        )
+        drugs = session.scalars(
+            select(Entity).where(Entity.kind == EntityKind.DRUG, Entity.rxcui.is_not(None))
+        ).all()
+        total = 0
+        for drug in drugs:
+            if drug.id in enriched and not args.all:
+                continue
+            added = enrich_drug_aliases(session, drug)
+            total += len(added)
+            if added:
+                print(f"  {drug.canonical_name}: {', '.join(added)}")
+        print(f"Added {total} brand/salt alias(es).")
+        return 0
+    finally:
+        session.close()
 
 
 def cmd_analyze(args: argparse.Namespace) -> int:
@@ -225,7 +270,12 @@ def main() -> int:
     seed = subparsers.add_parser("seed", help="Load upper intake limits from CSV")
     seed.add_argument("--csv", default="data/upper_limits.csv")
     seed.add_argument("--synonyms", default="data/nutrient_synonyms.csv")
+    seed.add_argument("--registry", default="data/supplement_registry.csv")
     seed.set_defaults(func=cmd_seed)
+
+    enrich = subparsers.add_parser("enrich", help="Add RxNorm brand names and salt forms")
+    enrich.add_argument("--all", action="store_true", help="re-check already-enriched drugs")
+    enrich.set_defaults(func=cmd_enrich)
 
     ingest = subparsers.add_parser("ingest", help="Ingest openFDA label sections for a drug")
     ingest.add_argument("drug")

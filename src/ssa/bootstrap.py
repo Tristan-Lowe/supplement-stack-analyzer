@@ -25,10 +25,10 @@ from pathlib import Path
 from rapidfuzz import fuzz
 from sqlalchemy.orm import Session
 
-from ssa.connectors.rxnorm import lookup_ingredient
+from ssa.connectors.rxnorm import ingredient_ids, lookup_ingredient, related_concepts
 from ssa.models import Entity, EntityKind
 from ssa.normalize import normalize_name
-from ssa.registry import add_alias, get_or_create_entity
+from ssa.registry import add_alias, find_by_alias, get_or_create_entity
 
 SUPPLEMENT_KINDS_CSV = "data/supplement_kinds.csv"
 
@@ -171,3 +171,47 @@ def bootstrap_entity(session: Session, raw_name: str) -> Entity | None:
         return entity
 
     return None
+
+
+def enrich_drug_aliases(session: Session, entity: Entity) -> list[str]:
+    """Add RxNorm brand names and salt forms of a drug as aliases.
+
+    Users type "Zoloft", "Coumadin", "sertraline HCl" — rarely the ingredient name
+    alone. Returns the aliases added.
+
+    **A brand is accepted only when its ingredients are exactly this drug.**
+    RxNorm lists Caduet as a brand of atorvastatin; it is atorvastatin plus
+    amlodipine. Binding "Caduet" to atorvastatin would silently drop amlodipine
+    from the user's stack, so combination brands are refused. A failed ingredient
+    lookup is also a refusal, never an acceptance.
+
+    An alias another entity already owns is skipped rather than made ambiguous.
+    """
+    if entity.kind is not EntityKind.DRUG or not entity.rxcui:
+        return []
+
+    added: list[str] = []
+    for concept in related_concepts(entity.rxcui, ("BN", "PIN")):
+        if concept.tty == "BN" and ingredient_ids(concept.rxcui) != {entity.rxcui}:
+            logger.info(
+                "Refusing brand %r for %s: not a single-ingredient product",
+                concept.name,
+                entity.canonical_name,
+            )
+            continue
+
+        owners = {e.id for e in find_by_alias(session, concept.name)}
+        if owners - {entity.id}:
+            logger.info(
+                "Skipping %r for %s: alias already owned elsewhere",
+                concept.name,
+                entity.canonical_name,
+            )
+            continue
+
+        source = "rxnorm_brand" if concept.tty == "BN" else "rxnorm_salt"
+        if add_alias(session, entity, concept.name, source=source) is not None:
+            added.append(concept.name)
+
+    session.commit()
+    return added

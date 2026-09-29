@@ -107,3 +107,58 @@ def lookup_ingredient(name: str) -> DrugConcept | None:
     # Already an ingredient, or no ingredient relationship exists.
     return concept
 
+
+
+@dataclass(frozen=True)
+class RelatedConcept:
+    rxcui: str
+    name: str
+    tty: str
+
+
+def related_concepts(rxcui: str, ttys: tuple[str, ...]) -> list[RelatedConcept]:
+    """Concepts of the given term types related to `rxcui`. Empty on any failure."""
+    try:
+        response = requests.get(
+            f"{RXNORM_BASE}/rxcui/{rxcui}/related.json",
+            params={"tty": " ".join(ttys)},
+            timeout=TIMEOUT_SECONDS,
+        )
+        response.raise_for_status()
+        groups = response.json().get("relatedGroup", {}).get("conceptGroup", []) or []
+    except (requests.RequestException, ValueError, AttributeError) as exc:
+        logger.warning("RxNorm related lookup failed for %s: %s", rxcui, exc)
+        return []
+
+    out: list[RelatedConcept] = []
+    for group in groups:
+        for prop in group.get("conceptProperties") or []:
+            out.append(
+                RelatedConcept(rxcui=prop["rxcui"], name=prop["name"], tty=prop["tty"])
+            )
+    return out
+
+
+def ingredient_ids(rxcui: str) -> set[str] | None:
+    """RxCUIs of every ingredient in a concept, or None if the lookup failed.
+
+    None and an empty set mean different things: None is "could not tell", which
+    callers must treat as a refusal, never as "single ingredient".
+    """
+    try:
+        response = requests.get(
+            f"{RXNORM_BASE}/rxcui/{rxcui}/related.json",
+            params={"tty": "IN"},
+            timeout=TIMEOUT_SECONDS,
+        )
+        response.raise_for_status()
+        groups = response.json().get("relatedGroup", {}).get("conceptGroup", []) or []
+    except (requests.RequestException, ValueError, AttributeError) as exc:
+        logger.warning("RxNorm ingredient lookup failed for %s: %s", rxcui, exc)
+        return None
+
+    return {
+        prop["rxcui"]
+        for group in groups
+        for prop in (group.get("conceptProperties") or [])
+    }

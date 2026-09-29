@@ -32,3 +32,14 @@ def test_mcg_and_iu_units_are_recognized():
     items = parse_stack_text("Vitamin B12 1000mcg\nVitamin D 2000 IU")
     assert items[0].unit == "mcg"
     assert items[1].unit == "iu"
+
+
+def test_bare_trailing_dose_is_split_off_without_a_unit():
+    [item] = parse_stack_text("NAC 600")
+    assert (item.raw, item.amount, item.unit) == ("NAC", 600.0, None)
+
+
+def test_small_trailing_numbers_stay_part_of_the_name():
+    assert parse_stack_text("omega 3")[0].raw == "omega 3"
+    assert parse_stack_text("vitamin b 12")[0].raw == "vitamin b 12"
+    assert parse_stack_text("ashwagandha KSM-66")[0].raw == "ashwagandha KSM-66"

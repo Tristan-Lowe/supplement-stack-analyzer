@@ -19,6 +19,14 @@ _ITEM = re.compile(
 )
 
 
+# "NAC 600" is a dose with the unit left off. A trailing bare number is taken as
+# an amount only when it is large enough that it cannot be part of the name:
+# small numbers are identity ("omega 3", "vitamin b 12"), and hyphenated ones
+# are product names ("KSM-66"), which the whitespace requirement excludes.
+_BARE_DOSE = re.compile(r"^(?P<name>.*\S)\s+(?P<amount>\d+(?:\.\d+)?)$")
+BARE_DOSE_MINIMUM = 50
+
+
 @dataclass(frozen=True)
 class StackItem:
     raw: str
@@ -45,11 +53,18 @@ def parse_stack_text(text: str) -> list[StackItem]:
         if match is None or not match.group("name").strip():
             items.append(StackItem(raw=cleaned, amount=None, unit=None))
             continue
+        name = match.group("name").strip()
         amount = match.group("amount")
         unit = match.group("unit")
+        if amount is None:
+            bare = _BARE_DOSE.match(name)
+            if bare and float(bare.group("amount")) >= BARE_DOSE_MINIMUM:
+                # The unit is unknown, so the upper-limit check will skip this
+                # item and say so rather than guess mg versus mcg.
+                name, amount = bare.group("name"), bare.group("amount")
         items.append(
             StackItem(
-                raw=match.group("name").strip(),
+                raw=name,
                 amount=float(amount) if amount else None,
                 unit=unit.lower() if unit else None,
             )
