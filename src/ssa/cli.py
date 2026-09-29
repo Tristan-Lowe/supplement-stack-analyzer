@@ -191,6 +191,38 @@ def cmd_replay(args: argparse.Namespace) -> int:
         session.close()
 
 
+def cmd_bootstrap_drugs(args: argparse.Namespace) -> int:
+    """Register common drugs from RxNorm so users' stacks recognise them. Network.
+
+    Names the registry already resolves are skipped. Anything RxNorm cannot confirm
+    through the bootstrap name-match guard is reported, never guessed.
+    """
+    import csv
+    from pathlib import Path
+
+    from ssa.bootstrap import bootstrap_entity
+    from ssa.resolver import Resolved, resolve
+
+    session = _session()
+    created, known, refused = 0, 0, []
+    try:
+        for row in csv.DictReader(Path(args.csv).read_text(encoding="utf-8").splitlines()):
+            name = row["drug"].strip()
+            if isinstance(resolve(session, name), Resolved):
+                known += 1
+                continue
+            if bootstrap_entity(session, name) is None:
+                refused.append(name)
+            else:
+                created += 1
+        print(f"{created} created, {known} already known, {len(refused)} not confirmed.")
+        if refused:
+            print("Not confirmed by RxNorm: " + ", ".join(refused))
+        return 0
+    finally:
+        session.close()
+
+
 def cmd_classes(args: argparse.Namespace) -> int:
     """Load curated drug classes and their RxClass memberships. Network; ingestion only."""
     from ssa.classes import load_drug_classes
@@ -332,6 +364,10 @@ def main() -> int:
     enrich = subparsers.add_parser("enrich", help="Add RxNorm brand names and salt forms")
     enrich.add_argument("--all", action="store_true", help="re-check already-enriched drugs")
     enrich.set_defaults(func=cmd_enrich)
+
+    boot = subparsers.add_parser("bootstrap-drugs", help="Register common drugs from RxNorm")
+    boot.add_argument("--csv", default="data/common_drugs.csv")
+    boot.set_defaults(func=cmd_bootstrap_drugs)
 
     classes = subparsers.add_parser("classes", help="Load drug classes from RxClass")
     classes.add_argument("--csv", default="data/drug_classes.csv")

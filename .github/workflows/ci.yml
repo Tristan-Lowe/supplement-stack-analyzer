@@ -28,3 +28,8 @@ jobs:
       # so CI needs no database credential. Fails on ANY wrong-entity resolution.
       - name: Resolution eval
         run: python -m evals.run_resolution_eval --snapshot evals/snapshot/graph.json
+      # Recall gate: may not drop below the value recorded in evals/baseline.json.
+      - name: Interaction recall
+        run: |
+          MIN=$(python -c "import json; print(json.load(open('evals/baseline.json'))['interaction_recall']['value'])")
+          python -m evals.run_interaction_eval --snapshot evals/snapshot/graph.json --min-recall "$MIN"

@@ -62,6 +62,10 @@ def evaluate(session: Session, rows: list[dict]) -> RecallReport:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--snapshot")
+    parser.add_argument(
+        "--min-recall", type=float, default=None,
+        help="exit non-zero below this recall (the regression gate)",
+    )
     args = parser.parse_args(argv)
     if args.snapshot:
         from ssa.web import load_snapshot
@@ -82,6 +86,10 @@ def main(argv: list[str] | None = None) -> int:
         print(f"    unrecognised  {line}")
     for line in report.no_edge:
         print(f"    no edge       {line}")
+    if args.min_recall is not None and report.recall + 1e-9 < args.min_recall:
+        print()
+        print(f"FAIL: recall {report.recall:.1%} is below the baseline {args.min_recall:.1%}")
+        return 1
     return 0
 
 
