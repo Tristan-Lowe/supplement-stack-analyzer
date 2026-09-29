@@ -191,6 +191,26 @@ def cmd_replay(args: argparse.Namespace) -> int:
         session.close()
 
 
+def cmd_classes(args: argparse.Namespace) -> int:
+    """Load curated drug classes and their RxClass memberships. Network; ingestion only."""
+    from ssa.classes import load_drug_classes
+
+    session = _session()
+    try:
+        report = load_drug_classes(session, args.csv)
+        print(
+            f"{report.classes} classes, {report.memberships} new memberships, "
+            f"{report.new_drugs} new drug entities."
+        )
+        if report.failed_codes:
+            print(f"RxClass lookups failed for: {', '.join(report.failed_codes)}")
+        if report.skipped_ambiguous:
+            print(f"Skipped ambiguous members: {', '.join(report.skipped_ambiguous)}")
+        return 1 if report.failed_codes else 0
+    finally:
+        session.close()
+
+
 def cmd_analyze(args: argparse.Namespace) -> int:
     session = _session()
     try:
@@ -312,6 +332,10 @@ def main() -> int:
     enrich = subparsers.add_parser("enrich", help="Add RxNorm brand names and salt forms")
     enrich.add_argument("--all", action="store_true", help="re-check already-enriched drugs")
     enrich.set_defaults(func=cmd_enrich)
+
+    classes = subparsers.add_parser("classes", help="Load drug classes from RxClass")
+    classes.add_argument("--csv", default="data/drug_classes.csv")
+    classes.set_defaults(func=cmd_classes)
 
     replay = subparsers.add_parser("replay", help="Retry quarantined triples (offline)")
     replay.set_defaults(func=cmd_replay)

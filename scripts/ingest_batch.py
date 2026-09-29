@@ -20,6 +20,8 @@ from sqlalchemy import select
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+import anthropic  # noqa: E402
+
 from ssa.cli import _session, cmd_enrich, cmd_ingest, cmd_replay  # noqa: E402
 from ssa.models import PipelineRun  # noqa: E402
 
@@ -52,6 +54,10 @@ def main(argv: list[str]) -> int:
         print(f"start {drug} [{row.get('group', '')}]", flush=True)
         try:
             code = cmd_ingest(argparse.Namespace(drug=drug))
+        except (anthropic.AuthenticationError, anthropic.PermissionDeniedError) as exc:
+            # A bad key fails every drug identically; stop instead of marching on.
+            print(f"  fatal: {type(exc).__name__}. Check ANTHROPIC_API_KEY in .env.", flush=True)
+            return 2
         except Exception as exc:  # keep going; report at the end
             code = 1
             print(f"  error: {type(exc).__name__}: {exc}", flush=True)

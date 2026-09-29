@@ -6,6 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from ssa.models import (
+    ClassMembership,
     Entity,
     EntityAlias,
     EntityKind,
@@ -189,6 +190,32 @@ def merge_entities(session: Session, duplicate_id: int, canonical_id: int) -> di
         row.affected_entity_id = canonical_id
     session.flush()
 
+    # Class memberships follow the entity. A membership the canonical entity
+    # already has is dropped rather than duplicated.
+    held = {
+        (m.class_id, m.member_id)
+        for m in session.scalars(
+            select(ClassMembership).where(
+                (ClassMembership.class_id == canonical_id)
+                | (ClassMembership.member_id == canonical_id)
+            )
+        ).all()
+    }
+    for row in session.scalars(
+        select(ClassMembership).where(
+            (ClassMembership.class_id == duplicate_id)
+            | (ClassMembership.member_id == duplicate_id)
+        )
+    ).all():
+        new_class = canonical_id if row.class_id == duplicate_id else row.class_id
+        new_member = canonical_id if row.member_id == duplicate_id else row.member_id
+        if new_class == new_member or (new_class, new_member) in held:
+            session.delete(row)
+            continue
+        row.class_id, row.member_id = new_class, new_member
+        held.add((new_class, new_member))
+    session.flush()
+
     for model in (UpperLimit, TimingRule):
         for row in session.scalars(
             select(model).where(
@@ -250,3 +277,17 @@ def reclassify_entities(session: Session) -> list[tuple[str, str, str]]:
             entity.kind = new_kind
     session.commit()
     return changed
+
+
+def classes_of(session: Session, entity_ids: list[int]) -> dict[int, list[int]]:
+    """entity_id -> ids of the drug classes it belongs to. Pure query, no network."""
+    out: dict[int, list[int]] = {eid: [] for eid in entity_ids}
+    if not entity_ids:
+        return out
+    for class_id, member_id in session.execute(
+        select(ClassMembership.class_id, ClassMembership.member_id).where(
+            ClassMembership.member_id.in_(entity_ids)
+        )
+    ).all():
+        out[member_id].append(class_id)
+    return out

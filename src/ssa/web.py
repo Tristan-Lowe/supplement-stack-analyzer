@@ -30,6 +30,7 @@ from ssa.analyze.engine import analyze_stack
 from ssa.analyze.findings import FindingKind
 from ssa.models import (
     Base,
+    ClassMembership,
     Entity,
     EntityAlias,
     EntityKind,
@@ -42,7 +43,7 @@ from ssa.models import (
     UpperLimit,
 )
 
-SNAPSHOT_VERSION = 1
+SNAPSHOT_VERSION = 2
 
 # Request limits. A real stack is a few hundred characters; these are generous
 # for people and tight for abuse.
@@ -103,6 +104,15 @@ def export_snapshot(session: Session) -> dict:
                 "url": u.source_url,
             }
             for u in session.scalars(select(UpperLimit)).all()
+        ],
+        "class_memberships": [
+            {
+                "class_id": m.class_id,
+                "member_id": m.member_id,
+                "source": m.source,
+                "url": m.source_url,
+            }
+            for m in session.scalars(select(ClassMembership).order_by(ClassMembership.id)).all()
         ],
         "timing_rules": [
             {
@@ -177,6 +187,15 @@ def load_snapshot(path: str | Path) -> sessionmaker:
                 source_url=u["url"],
             )
             for u in data["upper_limits"]
+        )
+        session.add_all(
+            ClassMembership(
+                class_id=m["class_id"],
+                member_id=m["member_id"],
+                source=m["source"],
+                source_url=m["url"],
+            )
+            for m in data["class_memberships"]
         )
         session.add_all(
             TimingRule(

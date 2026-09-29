@@ -31,6 +31,9 @@ class EntityKind(enum.StrEnum):
     HERBAL = "herbal"
     DRUG = "drug"
     OTHER = "other"
+    # A drug class named on a label ("NSAIDs", "proton pump inhibitors"). Never
+    # resolved from user input: a person takes a drug, not a class.
+    CLASS = "class"
 
 
 class Severity(enum.StrEnum):
@@ -145,6 +148,27 @@ class Interaction(Base):
         UniqueConstraint("entity_a_id", "entity_b_id", name="uq_interaction_pair"),
         Index("ix_interaction_a", "entity_a_id"),
         Index("ix_interaction_b", "entity_b_id"),
+    )
+
+
+class ClassMembership(Base):
+    """A drug belongs to a class, per an authoritative classification (RxClass ATC).
+
+    Membership is never inferred. It is what lets a label warning written about
+    "NSAIDs" reach a user who typed "ibuprofen".
+    """
+
+    __tablename__ = "class_memberships"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    class_id: Mapped[int] = mapped_column(ForeignKey("entities.id"), nullable=False)
+    member_id: Mapped[int] = mapped_column(ForeignKey("entities.id"), nullable=False)
+    source: Mapped[str] = mapped_column(String(64), nullable=False)
+    source_url: Mapped[str] = mapped_column(String(1024), nullable=False)
+
+    __table_args__ = (
+        UniqueConstraint("class_id", "member_id", name="uq_class_member"),
+        Index("ix_class_member_member", "member_id"),
     )
 
 

@@ -1,0 +1,31 @@
+canonical_name,atc_codes,aliases,note
+NSAIDs,M01A,nsaids|nsaid|nonsteroidal anti-inflammatory drugs|non-steroidal anti-inflammatory drugs|nonsteroidal anti-inflammatory agents|nonsteroidal anti-inflammatory drugs (nsaids),ATC M01A excludes aspirin; aspirin stays its own entity
+SSRIs,N06AB,ssris|ssri|selective serotonin reuptake inhibitors|selective serotonin reuptake inhibitors (ssris),
+Tricyclic Antidepressants,N06AA,tricyclic antidepressants|tcas|tricyclics,
+MAO Inhibitors,N06AF|N06AG,maois|maoi|monoamine oxidase inhibitors|mao inhibitors|monoamine oxidase inhibitors (maois),ATC covers the antidepressant MAOIs; linezolid and methylene blue stay their own entities
+Proton Pump Inhibitors,A02BC,proton pump inhibitors|ppis|ppi|proton pump inhibitors (ppis),
+Antacids,A02A,antacids,
+Antiplatelet Agents,B01AC,antiplatelet agents|antiplatelet drugs|antiplatelets|platelet aggregation inhibitors|platelet inhibitors,
+Anticoagulants,B01AA|B01AB|B01AE|B01AF,anticoagulants|anticoagulant drugs|anticoagulant agents,Heparins included
+Oral Anticoagulants,B01AA|B01AE|B01AF,oral anticoagulants|vitamin k antagonists|coumarin anticoagulants,Heparins excluded
+Glucocorticoids,H02AB,glucocorticoids|corticosteroids|systemic corticosteroids,
+Fluoroquinolones,J01MA,fluoroquinolones|quinolones|quinolone antibiotics|fluoroquinolone antibiotics,
+Tetracyclines,J01AA,tetracyclines|tetracycline antibiotics,
+Statins,C10AA,statins|hmg-coa reductase inhibitors|hmg coa reductase inhibitors,
+Fibrates,C10AB,fibrates|fibric acid derivatives,
+Bile Acid Sequestrants,C10AC,bile acid sequestrants|bile acid binding resins,
+Digitalis Glycosides,C01AA,digitalis glycosides|cardiac glycosides,
+Thiazide Diuretics,C03AA,thiazide diuretics|thiazides,
+Loop Diuretics,C03CA,loop diuretics,
+Potassium-Sparing Diuretics,C03DA|C03DB,potassium-sparing diuretics|potassium sparing diuretics,
+ACE Inhibitors,C09AA,ace inhibitors|angiotensin converting enzyme inhibitors|angiotensin-converting enzyme inhibitors|ace inhibitors (acei),
+Angiotensin Receptor Blockers,C09CA,angiotensin receptor blockers|arbs|angiotensin ii receptor blockers|angiotensin ii receptor antagonists,
+Beta Blockers,C07AA|C07AB,beta blockers|beta-blockers|beta-adrenergic blocking agents|beta adrenergic blockers|beta-adrenergic antagonists,
+Sulfonylureas,A10BB,sulfonylureas,
+Antidiabetic Agents,A10,antidiabetic agents|antidiabetic drugs|hypoglycemic agents|antidiabetic medications,Includes insulins
+Triptans,N02CC,triptans|5-ht1 agonists,
+Benzodiazepines,N05BA|N05CD,benzodiazepines,
+Opioids,N02A,opioids|opioid analgesics|narcotic analgesics,
+Antiepileptics,N03A,antiepileptic drugs|anticonvulsants|antiepileptics,
+Bisphosphonates,M05BA,bisphosphonates,
+Hormonal Contraceptives,G03A,oral contraceptives|hormonal contraceptives|estrogen-containing oral contraceptives|birth control pills,Single-ingredient members only; combination pills are refused like any combination

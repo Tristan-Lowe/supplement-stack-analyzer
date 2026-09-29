@@ -16,7 +16,7 @@ from ssa.analyze.limits import check_upper_limits
 from ssa.analyze.pairwise import check_pairwise
 from ssa.analyze.redundancy import ResolvedDose, check_redundancy
 from ssa.analyze.timing import check_timing
-from ssa.models import Severity
+from ssa.models import Entity, EntityKind, Severity
 from ssa.resolver import Ambiguous, Resolved, Unknown, build_alias_index, resolve
 from ssa.stack import parse_stack_text
 
@@ -92,6 +92,12 @@ def analyze_stack(session: Session, stack_text: str) -> AnalysisReport:
 
     for item in items:
         result = resolve(session, item.raw, alias_index=alias_index)
+        # A class ("statins", "NSAIDs") is not something a person takes; it is too
+        # general to check. Report it as unidentified rather than guess a member.
+        if isinstance(result, Resolved):
+            entity = session.get(Entity, result.entity_id)
+            if entity is not None and entity.kind is EntityKind.CLASS:
+                result = Unknown(raw=item.raw)
         if isinstance(result, Resolved):
             entity_ids.append(result.entity_id)
             doses.append(
