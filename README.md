@@ -3,6 +3,8 @@
 Finds interactions, redundancies, upper-limit breaches, and timing conflicts across
 everything a person takes — supplements **and** prescriptions.
 
+**Try it:** [supplement-stack-analyzer-opal.vercel.app](https://supplement-stack-analyzer-opal.vercel.app) — paste a stack, get cited findings.
+
 Most people who take supplements take several at once, often alongside medication,
 with no check on whether those compounds fight each other. The failure modes are
 concrete: St. John's Wort induces CYP3A4 and defeats SSRIs and statins; magnesium
@@ -116,8 +118,6 @@ on context, and picking one would be a guess.
 **Human review decisions are not overridden.** An interaction a reviewer marked
 `REJECTED` stays rejected even when a later, higher-severity source arrives. Evidence
 still accrues so the call can be revisited deliberately.
-
-**Try it:** [supplement-stack-analyzer-opal.vercel.app](https://supplement-stack-analyzer-opal.vercel.app) — paste a stack, get cited findings.
 
 ---
 
